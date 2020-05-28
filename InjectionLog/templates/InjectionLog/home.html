@@ -25,10 +25,10 @@
     <div class="container mb-3">
 
       <div class="progress mb-3">
-        <div class="progress-bar bg-warning" role="progressbar" style="width: {{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}%" aria-valuenow="{{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}%" aria-valuemin="0" aria-valuemax="100">{{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}% of Injections Logged </div>
+        <div class="progress-bar bg-warning" role="progressbar" style="width: {% if relapse %} {{progress.inj_date|duration_progress}} {% else %} {{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%" aria-valuenow="{% if relapse %} {{progress.inj_date|duration_progress}} {% else %} {{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%" aria-valuemin="0" aria-valuemax="100">{% if relapse %} {{progress.inj_date|duration_progress}} {% else %} {{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}{% endif %}% of Injections Logged </div>
       </div>
       <div class="progress mb-3">
-        <div class="progress-bar bg-success" role="progressbar" style="width: {{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}%" aria-valuenow="{{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}%" aria-valuemin="0" aria-valuemax="100">{{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}% of Days Completed</div>
+        <div class="progress-bar bg-success" role="progressbar" style="width: {% if relapse %} {{treatment_duration|duration_progress}} {% else %} {{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%" aria-valuenow="{% if relapse %} {{treatment_duration|duration_progress}} {% else %} {{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}{% endif %}% aria-valuemin="0" aria-valuemax="100">{% if relapse %} {{treatment_duration|duration_progress}} {% else %} {{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%% of Days Completed</div>
       </div>
 
       <form action="/" method="GET">
@@ -40,7 +40,7 @@
       </form>
     </div>
 
-    {% if progress.inj_date != treatment_duration %}
+    {% if progress.inj_date < treatment_duration %}
       <div class="alert alert-danger">
         <div class="row">
           <div class="col-sm-2">

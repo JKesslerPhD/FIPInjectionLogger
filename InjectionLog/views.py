@@ -98,7 +98,7 @@ def main_site(request):
     else:
         grouping = None
     injections = InjectionLog.objects.filter(owner=request.user)
-    return render(request, template, {"page":page, "progress":inj_progress,"sc":sc, "treatment_duration":treatment_duration.days,"grouping":grouping,"validcats":validcats})
+    return render(request, template, {"page":page, "progress":inj_progress,"sc":sc, "relapse":relapse, "treatment_duration":treatment_duration.days,"grouping":grouping,"validcats":validcats})
 
 def catinfo(request):
     if not request.user.is_authenticated:

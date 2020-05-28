@@ -25,7 +25,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-CSRF_COOKIE_SECURE = True
+
+# CSRF_COOKIE_SECURE = True
+# SECURE_SSL_REDIRECT = True
+# SESSION_COOKIE_SECURE = True
 
 ALLOWED_HOSTS = ['fiplog.com','localhost']
 

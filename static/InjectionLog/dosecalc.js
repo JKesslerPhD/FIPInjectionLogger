@@ -102,3 +102,24 @@ function gaba_trigger()
     });
   }, false);
 })();
+
+$(document).on('click', '.confirm-delete', function(){
+    return confirm('Are you sure you want to delete this record?');
+})
+
+
+
+function relapse_trigger()
+{
+  var theForm = document.forms["catinfo"];
+  var check = theForm.elements["relapse"];
+  if(check.checked == true)
+  {
+    document.getElementById("relapse_fields").style.display = "block"
+
+  }
+  else {
+    document.getElementById("relapse_fields").style.display = "none"
+  }
+
+}

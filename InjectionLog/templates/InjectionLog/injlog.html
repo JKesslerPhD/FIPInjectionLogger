@@ -1,0 +1,61 @@
+{% extends 'InjectionLog/index.html' %}
+{% load groupfilter %}
+{% block maincontent %}
+<div class="container">
+<form action="/log/" method="GET">
+  <div class="alert alert-dark">
+    <div class="form-row col-md-6 mb-3">
+      <label for="selectedcat">Selected Cat </label>
+      <select class="form-control" name="selectedcat" id="selectedcat" onchange="submit();">
+        {% for cat in validcats %}
+        <option value="{{cat.id}}" {% ifequal cat.id request.GET.selectedcat|add:"0" %} selected {% endifequal %}>{{cat.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+</form>
+</div>
+<main role="main">
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Date</th>
+        <th scope="col">Day Number</th>
+        <th scope="col">Weight</th>
+        <th scope="col">Amount given (mL)</th>
+        <th scope="col">Gaba Dosage mg</th>
+        <th scope="col">Injection Notes</th>
+        <th scope="col">Other Notes</th>
+        <th scope="col">Delete Record</th>
+
+      </tr>
+    </thead>
+    <tbody>
+    {% for injection in injections %}
+      <tr>
+        <th scope="row">{{ injection.injection_time}} </th>
+        <td>{{ injection.inj_date|duration_days}}</td>
+        <td>{{ injection.cat_weight }}</td>
+        <td>{{ injection.injection_amount }}</td>
+        <td>{{ injiection.gaba_dose }}</td>
+        <td>{{ injection.injection_notes }}</td>
+        <td>{{ injection.other_notes }}</td>
+        <td>
+          <a href="/delete?delete_id={{injection.id}}&selectedcat={{request.GET.selectedcat}}" onclick="return confirm('Are you sure you want to delete this?')">
+            <svg class="bi bi-trash2" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M3.18 4l1.528 9.164a1 1 0 0 0 .986.836h4.612a1 1 0 0 0 .986-.836L12.82 4H3.18zm.541 9.329A2 2 0 0 0 5.694 15h4.612a2 2 0 0 0 1.973-1.671L14 3H2l1.721 10.329z"/>
+              <path d="M14 3c0 1.105-2.686 2-6 2s-6-.895-6-2 2.686-2 6-2 6 .895 6 2z"/>
+              <path fill-rule="evenodd" d="M12.9 3c-.18-.14-.497-.307-.974-.466C10.967 2.214 9.58 2 8 2s-2.968.215-3.926.534c-.477.16-.795.327-.975.466.18.14.498.307.975.466C5.032 3.786 6.42 4 8 4s2.967-.215 3.926-.534c.477-.16.795-.327.975-.466zM8 5c3.314 0 6-.895 6-2s-2.686-2-6-2-6 .895-6 2 2.686 2 6 2z"/>
+            </svg>
+          </a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+</main>
+
+{% endblock %}

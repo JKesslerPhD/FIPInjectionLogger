@@ -1,0 +1,83 @@
+{% extends 'InjectionLog/base.html' %}
+{% load groupfilter %}
+{% block navigation %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+  <a class="navbar-brand" href="/"><img src="https://img.icons8.com/pastel-glyph/64/000000/cat--v3.png"/ alt="">FIP Log</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      {% if page == "home" %}
+      <li class="nav-item active">
+      {% else %}
+      <li class="nav-item">
+      {% endif %}
+        <a class="nav-link" href="/">Home <span class="sr-only"></span></a>
+      </li>
+      {% if page == "injection" or page == "dose" %}
+      <li class="nav-item active">
+      {% else %}
+      <li class="nav-item">
+      {% endif %}
+        <a class="nav-link" href="/inject/">Record Medication <span class="sr-only"></span></a>
+      </li>
+      {% if page == "catinfo" %}
+      <li class="nav-item active">
+      {% else %}
+      <li class="nav-item">
+      {% endif %}
+        <a class="nav-link" href="/catinfo">Cat Information <span class="sr-only"></span></a>
+      </li>
+      {% if request.user|has_group:"WarriorAdmin" %}
+        {% if page == "add_gs" %}
+        <li class="nav-item active">
+        {% else %}
+        <li class="nav-item">
+        {% endif %}
+          <a class="nav-link" href="/add_gs">Add GS <span class="sr-only"></span></a>
+        </li>
+      {% endif %}
+      {% if page == "log" %}
+      <li class="nav-item active">
+      {% else %}
+      <li class="nav-item">
+      {% endif %}
+        <a class="nav-link" href="/log">View Treatment Log<span class="sr-only"></span></a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Account Settings
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          <a class="dropdown-item" href="/make_test/">Mark as Test Account</a>
+          <a class="dropdown-item" href="/logout/">Logout</a>
+          <a class="dropdown-item" href="accounts/password_change">Change Password</a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>
+<div style="height:100px;"></div>
+<!-- Example row of columns -->
+{% if request.GET.message == "success" %}
+<div class="alert alert-success">
+  New data successfully added!
+</div>
+{% endif %}
+{% if request.GET.message == "update" %}
+<div class="alert alert-warning">
+  Record has been updated
+</div>
+{% endif %}
+{% if request.GET.error %}
+<div class="alert alert-danger">
+  {{request.GET.error}}
+</div>
+{% endif %}
+
+{% block maincontent %}
+
+{% endblock %}
+{% endblock %}

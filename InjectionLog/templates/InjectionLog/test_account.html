@@ -1,0 +1,29 @@
+{% extends 'InjectionLog/index.html' %}
+
+{% block maincontent %}
+
+<main role="main">
+<div class="container">
+  <div class="alert alert-info">
+    <form action="/make_test/" method="POST">
+      {% csrf_token %}
+      <div class="form-row mb-3">
+        <div class="custom-control custom-switch">
+          <input name="activate_test" {% if enabled.test_account %} checked {% endif %} type="checkbox" class="custom-control-input" id="activate_test" onchange="submit();">
+          <label class="custom-control-label" for="activate_test">this account is used for testing website functionality</label>
+        </div>
+      </div>
+      <div class="form-row mb-3">
+        <div class="alert alert-warning">If you enable this button, the data affiliated with your account will not be used for evaluating FIP treatment for cats.
+          This button should only be marked if you are using this account to test functionality of the FIPlog website.
+        This functionality will only be accessible for a short time.
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+</main>
+
+{% endblock %}

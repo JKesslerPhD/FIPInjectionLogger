@@ -1,0 +1,135 @@
+{% extends 'InjectionLog/index.html' %}
+{% load groupfilter %}
+{% block maincontent %}
+
+{% if catnum >= 1 and not request.GET.CatID %}
+<main role="main">
+<div class="container">
+  <form action="/catinfo/" method="GET">
+    <div class="alert alert-info">
+      <div class="form-group">
+        <div class="col">
+          <label for="CatID">Select the Cat to Update</label>
+        </div>
+        <div class="col mb-3">
+          <select name="CatID" id="CatID" class="form-control">
+            <option value="">Select Cat...</option>
+            <option value=0>Add Another Cat</option>
+          {% for cat in cats %}
+            <option value="{{cat.id}}">{{cat.name}}</option>
+          {% endfor %}
+          </select>
+        </div>
+        <div class="form-row mb-3">
+          <input type="submit" class="btn btn-secondary" role="button" value="Select Cat">
+        </div>
+      </div>
+    </div>
+</form>
+</div>
+</div>
+{% else %}
+{% with cats|first as cat %}
+
+{% if cat.owner == request.user or request.user|has_group:"WarriorAdmin" or not request.GET.CatID or request.GET.CatID == '0' %}
+<main role="main">
+<div class="container">
+  <div class="alert alert-secondary">
+    <form class="needs-validation" novalidate action="/catinfo/" id="catinfo" method="POST">
+      {% csrf_token %}
+    <input type="hidden" name="CatID" value="{{cat.id}}">
+    <h4>Cat Information</h4>
+    <div class="form-group">
+      <label for="CatName">Cat Name</label>
+      <div class="input-group mb-3">
+        <input class="form-control" required name="CatName" value="{{cat.name}}" id="CatName" {% if cat.id %} disabled {% endif %}>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="FIP Type">FIP Type</label>
+      <div class="input-group mb-3">
+        <div class="col-5">
+          <select required name="FIP Type" class="form-control" {% if cat.id %} disabled {% endif %}>
+            <option value="">Select FIP-Type</option>
+            <option value="wet" {% if cat.fip_type == "wet" %} Selected {% endif %}>Wet FIP</option>
+            <option value="dry" {% if cat.fip_type == "dry" %} Selected {% endif %}>Dry FIP</option>
+
+          </select>
+        </div>
+        <div class="col">
+          <input {% if cat.id %} disabled {% endif %} class="form-check-input" type="checkbox" {% if cat.ocular %} checked {% endif %} value="" id="Ocular" name="Ocular">
+          <label class="form-check-label" for="Ocular">
+            Ocular Involvement
+          </label>
+      </div>
+      <div class="col">
+        <input {% if cat.id %} disabled {% endif %} class="form-check-input" type="checkbox" {% if cat.neuro %} checked {% endif %} id="Neuro" name="Neuro">
+        <label class="form-check-label" for="Neuro">
+          Neuro Symptoms
+        </label>
+    </div>
+    </div>
+    <div class="form-group">
+      <label for="CatBirthday">Birthday</label>
+      <div class="input-group mb-3 col-xsm-1">
+         <input {% if cat.id %} disabled {% endif %} type="date" required class="form-control" value="{{cat.birthday|date:'Y-m-d'}}" name="CatBirthday" id="CatBirthday" />
+
+      </div>
+    </div>
+
+
+    <hr>
+    <div class="alert alert-warning container">
+      <h4>Treatment Information</h4>
+      <div class="form-row mb-3">
+      <label for="treatmentstart">Treatment Start Date</label>
+        <input name="treatmentstart" class="form-control" type="date" value="{{cat.treatment_start|date:'Y-m-d'}}" {% if cat.treatment_start %} disabled {% endif %} id="treatmentstart">
+      </div>
+
+
+      {% if cat.treatment_start|elapsed|add:0 >= 50 %}
+      <div class="form-row col-sm-6 mb-3">
+        <label for="extendedtreatment">Additional Days for Extended Treatment</label>
+        <div class="input-group col-sm-6">
+          <input name="extendedtreatment" class="form-control" type="number" value="{{cat.extended_treatment}}" id="extendedtreatment">
+        </div>
+        <div class="form-group-append">
+          <span class="input-group-text">days</span>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="form-row mb-3">
+      <label for="warrioradmin">Warrior Admin</label>
+        <input name="warrioradmin" class="form-control" value="{{cat.WarriorAdmin}}" id="warrioradmin">
+      </div>
+
+      <div class="form-row col-md-6 mb-3">
+        <div class="custom-control custom-switch">
+          <input name="relapse" {% if cat.relapse %} checked {% endif %} type="checkbox" class="custom-control-input" id="relapse" onchange="get_dosage()">
+          <label class="custom-control-label" for="relapse">Cat Has Relapsed</label>
+        </div>
+      </div>
+      <div class="form-row col-md-6 mb-3">
+        <label for="notes">Other Notes</label>
+        <textarea class="form-control" name="notes" id="notes" rows="2">{{cat.notes}}</textarea>
+    </div>
+    <div class="form-row mb-3">
+      <input type="hidden" name="submission_type" value="user_defined">
+      <input type="submit" class="btn btn-secondary" role="button" value="Save Information">
+    </div>
+    <div class="alert alert-danger" style="display:none" id="validation_message">Nothing</div>
+
+    </form>
+  </div>
+</div>
+
+
+</main>
+{% else %}
+<div class="alert alert-danger">You are unauthorized to view this record</div>
+{% endif %}
+
+{% endwith %}
+{% endif %}
+{% endblock %}

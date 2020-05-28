@@ -37,6 +37,10 @@ EMAIL_HOST_USER = 'fiplog.website@gmail.com'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 CRISPY_TEMPLATE_PACK="bootstrap4"
 
+####
+# Additional User Actions Required
+####
+# EMAIL_HOST_PASSWORD and SECRET_KEY must be set in the secure_settings.py file.
 
 # Application definition
 

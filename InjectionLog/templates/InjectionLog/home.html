@@ -4,7 +4,6 @@
 
 <main role="main">
   <div class="container">
-
     {% if not validcats.all %}
     <div class="jumbotron">
       <h2>Getting Started</h2>
@@ -19,15 +18,17 @@
     </div>
     {% else %}
 
-    <div class="row">
-
-      You are on {{progress.inj_date|duration_days}}
+    <div class="container">
+      <div class="row">You are on {{treatment_duration|duration_days}}</div>
     </div>
 
     <div class="container mb-3">
 
       <div class="progress mb-3">
-        <div class="progress-bar bg-success" role="progressbar" style="width: {{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}%" aria-valuenow="{{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}%" aria-valuemin="0" aria-valuemax="100">{{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}% of Treatment Completed</div>
+        <div class="progress-bar bg-warning" role="progressbar" style="width: {{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}%" aria-valuenow="{{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}%" aria-valuemin="0" aria-valuemax="100">{{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}% of Injections Logged </div>
+      </div>
+      <div class="progress mb-3">
+        <div class="progress-bar bg-success" role="progressbar" style="width: {{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}%" aria-valuenow="{{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}%" aria-valuemin="0" aria-valuemax="100">{{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}% of Days Completed</div>
       </div>
 
       <form action="/" method="GET">
@@ -38,6 +39,19 @@
         </select>
       </form>
     </div>
+
+    {% if progress.inj_date != treatment_duration %}
+      <div class="alert alert-danger">
+        <div class="row">
+          <div class="col-sm-2">
+            <img src="https://img.icons8.com/pastel-glyph/64/000000/cat--v1.png"/>
+          </div>
+          <div class="col">
+            Your log is not up to date.  This data is important to track.  Please <a href="/inject">record treatments</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
 
     {% if progress.inj_date|duration_progress:sc.cat_name.extended_treatment|add:0 >= 75 and progress.inj_date|duration_progress:sc.cat_name.extended_treatment|add:0 < 100 %}
       <div class="alert alert-warning">
@@ -51,6 +65,18 @@
         </div>
       </div>
     {% endif %}
+    {% if treatment_duration >= 84|add:sc.cat_name.extended_treatment %}
+    <div class="alert alert-warning">
+      <div class="row">
+        <div class="col-sm-2">
+          <img src="https://img.icons8.com/pastel-glyph/64/000000/cat--v1.png"/>
+        </div>
+        <div class="col">
+          You are now in the 84 day observation period. If your cat experiences a relapse, please update your <a href="/catinfo/?CatID={{sc.cat_name.id}}">cat's profile</a>.
+        </div>
+      </div>
+    </div>
+    {% endif %}
 
     <div class="jumbotron">
 
@@ -63,7 +89,7 @@
       {% endif %}
       <div class="card-deck">
         <div class="row">
-          {% if sc.cat_name.treatment_start|elapsed|add:0 >= 84|add:sc.cat_name.extended_treatment %}
+          {% if treatment_duration >= 84|add:sc.cat_name.extended_treatment %}
           <div class="col-sm-6 mb-3">
             <div class="card bg-light" style="width: 18rem;"">
               <div class="card-header">

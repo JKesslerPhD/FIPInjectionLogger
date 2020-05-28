@@ -108,10 +108,18 @@ $(document).on('click', '.confirm-delete', function(){
 })
 
 
-$(function(){
-    $('.datepicker').datepicker({
-        format: 'mm-dd-yyyy',
-        endDate: '+0d',
-        autoclose: true
-    });
-});
+
+function relapse_trigger()
+{
+  var theForm = document.forms["catinfo"];
+  var check = theForm.elements["relapse"];
+  if(check.checked == true)
+  {
+    document.getElementById("relapse_fields").style.display = "block"
+
+  }
+  else {
+    document.getElementById("relapse_fields").style.display = "none"
+  }
+
+}

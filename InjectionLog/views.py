@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 from django.db.models.functions import Cast
 from django.contrib.auth import authenticate, login
 from .models import InjectionLog, GSBrand, Cats, UserGS, SelectedCat
-from .models import UserExtension
+from .models import UserExtension, RelapseDate
 from django.contrib.auth.forms import UserCreationForm
 from .forms import AddGS, RegisterForm
 from django.db.models.fields import DateField
@@ -13,6 +13,7 @@ import re
 from django.core.mail import send_mail
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from datetime import datetime
 
 import decimal
 
@@ -38,6 +39,7 @@ def main_site(request):
         return redirect("/information")
         
     sc = None
+    relapse = None
     validcats = Cats.objects.filter(owner=request.user)
     if not SelectedCat.objects.filter(user=request.user).exists():
         if Cats.objects.filter(owner=request.user).exists():
@@ -47,7 +49,7 @@ def main_site(request):
     else:
         sc = SelectedCat.objects.get(user=request.user)
         
-    if "selectedcat" in request.GET and not sc is None:
+    if "selectedcat" in request.GET and sc:
         try:
             cat = Cats.objects.filter(owner=request.user).filter(id=request.GET["selectedcat"])[0]
         except:
@@ -55,18 +57,40 @@ def main_site(request):
         sc = SelectedCat.objects.get(user=request.user)
         sc.cat_name=cat
         sc.save()
+           
+    
     try:
-        inj_progress = InjectionLog.objects.filter(
-            owner=request.user).filter(
-            cat_name=sc.cat_name).filter(
-            active=True).annotate(
-            inj_date = ExpressionWrapper(
-                Cast(F('injection_time'), 
-                DateField())-F('cat_name__treatment_start'),output_field=DurationField())
-                ).order_by('inj_date')[0]
+        relapse = RelapseDate.objects.filter(cat_name = sc.cat_name).order_by('-relapse_start')[0]
+        treatment_duration = datetime.now().date()-relapse.relapse_start
+        try:
+            inj_progress={}
+            inj_date = InjectionLog.objects.filter(
+                owner=request.user).filter(
+                cat_name=sc.cat_name).filter(
+                active=True).order_by("-injection_time")[0].injection_time.date() - relapse.relapse_start
+            inj_progress["inj_date"] = inj_date.days
+
+        except:
+            inj_progress = None
+
     except:
-        inj_progress = None
-                    
+        try:
+            treatment_duration = datetime.now().date()-sc.cat_name.treatment_start
+        except:
+            treatment_duration = datetime.now().date()-datetime.now().date()
+        try:
+            inj_progress={}
+            inj_date = InjectionLog.objects.filter(
+                owner=request.user).filter(
+                cat_name=sc.cat_name).filter(
+                active=True).order_by("-injection_time")[0].injection_time.date() - sc.cat_name.treatment_start
+            inj_progress["inj_date"] = inj_date.days
+        except:
+            inj_progress = None
+    
+
+        
+                        
     template ='InjectionLog/home.html'
     page="home"
     if request.user.groups.filter(name="WarriorAdmin").exists():
@@ -74,13 +98,14 @@ def main_site(request):
     else:
         grouping = None
     injections = InjectionLog.objects.filter(owner=request.user)
-    return render(request, template, {"page":page, "progress":inj_progress,"sc":sc, "grouping":grouping,"validcats":validcats})
+    return render(request, template, {"page":page, "progress":inj_progress,"sc":sc, "treatment_duration":treatment_duration.days,"grouping":grouping,"validcats":validcats})
 
 def catinfo(request):
     if not request.user.is_authenticated:
         return redirect("/information")
     
     page="catinfo"
+    relapse = None
     validcats = Cats.objects.filter(owner=request.user)
     pattern = "[0-9]{4}\-[0-9]{2}\-[0-9]{2}"
     if request.method == "POST":
@@ -88,8 +113,13 @@ def catinfo(request):
 
 
             c = Cats.objects.get(id=request.POST["CatID"])
+            
             if  "treatmentstart" in request.POST and re.match(pattern,request.POST["treatmentstart"]):
                 c.treatment_start = request.POST["treatmentstart"]
+            
+            if  "relapse_date" in request.POST and re.match(pattern,request.POST["relapse_date"]):
+                relapse = RelapseDate(cat_name = c,  relapse_start = request.POST["relapse_date"])
+                relapse.save()
             
             if "extendedtreatment" in request.POST:
                 if request.POST["extendedtreatment"]=="":
@@ -134,14 +164,19 @@ def catinfo(request):
             try:
                 cats = Cats.objects.filter(id=request.GET["CatID"])
                 catnum=1
+                try:
+                    relapse = RelapseDate.objects.filter(cat_name = cats[0])
+                except:
+                    relapse=None
             except:
                 return redirect("/catinfo")
             
         else:
             cats = Cats.objects.filter(owner = request.user).all()
             catnum = len(cats)
+    
     template = "InjectionLog/catinfo.html"
-    return render(request, template, {"page":page, "cats":cats, "catnum":catnum, "validcats":validcats})
+    return render(request, template, {"page":page, "cats":cats, "relapse":relapse, "catnum":catnum, "validcats":validcats})
     
 def information(request):
     template ='InjectionLog/information.html'
@@ -249,7 +284,10 @@ def recordinjection(request):
             pass
             
     request.GET = request.GET.copy()
-    request.GET["selectedcat"] = cat_name.id
+    try:
+        request.GET["selectedcat"] = cat_name.id
+    except:
+        return redirect("/?error=Please add a cat to your account first")
 
     try:
         latest_data = InjectionLog.objects.filter(owner=request.user).filter(cat_name=cat_name).order_by('-injection_time')[0]

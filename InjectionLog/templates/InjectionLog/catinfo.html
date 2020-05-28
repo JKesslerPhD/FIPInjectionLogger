@@ -5,6 +5,7 @@
 {% if catnum >= 1 and not request.GET.CatID %}
 <main role="main">
 <div class="container">
+
   <form action="/catinfo/" method="GET">
     <div class="alert alert-info">
       <div class="form-group">
@@ -91,7 +92,7 @@
       <div class="form-row col-sm-6 mb-3">
         <label for="extendedtreatment">Additional Days for Extended Treatment</label>
         <div class="input-group col-sm-6">
-          <input name="extendedtreatment" class="form-control" type="number" value="{{cat.extended_treatment}}" id="extendedtreatment">
+          <input name="extendedtreatment" class="form-control" type="number" value="{{cat.extended_treatment}}" id="extendedtreatment" {% if relapse %} disabled {% endif %}>
         </div>
         <div class="form-group-append">
           <span class="input-group-text">days</span>
@@ -104,12 +105,30 @@
         <input name="warrioradmin" class="form-control" value="{{cat.WarriorAdmin}}" id="warrioradmin">
       </div>
 
+    {% if cat.treatment_start|elapsed|add:0 >= 50 %}
       <div class="form-row col-md-6 mb-3">
         <div class="custom-control custom-switch">
-          <input name="relapse" {% if cat.relapse %} checked {% endif %} type="checkbox" class="custom-control-input" id="relapse" onchange="get_dosage()">
+          <input name="relapse" {% if cat.relapse %} checked {% endif %} type="checkbox" class="custom-control-input" id="relapse" {% if relapse %} disabled {% endif %} onchange="relapse_trigger();">
           <label class="custom-control-label" for="relapse">Cat Has Relapsed</label>
         </div>
+        <div class="container" id="relapse_fields" {% if cat.relapse %} style="display:block;" {% else %} style="display:none" {% endif %}>
+          <div class="alert alert-danger">
+          {% for date in relapse %}
+            <div class="form-row mb-3">
+              <label for="relapse_date_{{forloop.counter}}">Relapse Start Date</label>
+              <input name="relapse_date_{{forloop.counter}}" class="form-control" type="date" value="{{date.relapse_start|date:'Y-m-d'}}" {% if date.relapse_start %} disabled {% endif %} id="relapse_date_{{forloop.counter}}">
+            </div>
+          {% endfor %}
+          <div class="form-row mb-3">
+            <label for="relapse_date">New Relapse Start Date</label>
+            <input name="relapse_date" class="form-control" type="date" value="" id="relapse_date">
+            <small class="form-text">Please record every new instance of relapse.  This will impact your treatment countdown.</small>
+          </div>
+          </div>
+        </div>
       </div>
+    {% endif %}
+
       <div class="form-row col-md-6 mb-3">
         <label for="notes">Other Notes</label>
         <textarea class="form-control" name="notes" id="notes" rows="2">{{cat.notes}}</textarea>

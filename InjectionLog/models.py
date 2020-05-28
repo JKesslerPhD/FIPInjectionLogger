@@ -11,6 +11,7 @@ class UserExtension(models.Model):
     test_account = models.BooleanField(default=False)
     facebook = models.CharField(max_length = 200, null=True)
 
+
     
 class Cats(models.Model):
     owner = models.ForeignKey(User, on_delete = models.PROTECT)
@@ -69,3 +70,10 @@ class ObservationLog(models.Model):
     cat_behavior_today = models.IntegerField(default=3, null=False)
     notes = models.TextField(null=True)
     active = models.BooleanField(default=True)
+    
+class RelapseDate(models.Model):
+    cat_name = models.ForeignKey(Cats, on_delete = models.PROTECT)
+    relapse_start = models.DateField(null=True)
+    active = models.BooleanField(default=True)
+    
+    

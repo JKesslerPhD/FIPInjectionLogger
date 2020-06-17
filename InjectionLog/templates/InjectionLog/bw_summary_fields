@@ -1,0 +1,78 @@
+<div class="alert alert-danger container" {%if cat.id %} style="display:block" {% else %}style="display:none" {% endif %}>
+  <h4>Bloodwork Summary</h4>
+  <small>Fill this out to make it easier to flag FIP-relevant values</small>
+  <div class="container">
+    <table class="table table-sm">
+      <tr>
+
+        <td class="row align-items-start bg-light bd-callout bd-callout-danger">
+          Red Blood Cells (RBC)
+        </td>
+        <td class="row bg-light bd-callout bd-callout-danger">
+          HCT (Hematocrit)
+        </td>
+        <td class="row bg-light bd-callout bd-callout-danger">
+          Hemaglobin (HGB)
+        </td>
+        <td class="row bg-light bd-callout">
+          White Blood Cells (WBC)
+        </td>
+        <td class="row bg-light bd-callout">
+          % Lymphocytes (%LYM)
+        </td>
+        <td class="row align-items-start bg-light bd-callout">
+          % Neutrophils (%NEU)
+        </td>
+        <td class="row bg-light bd-callout">
+          Absolute Lymphocyte Count (LYM)
+        </td>
+        <td class="row bg-light bd-callout">
+          Absolute Neutrophil Count (NEU)
+        </td>
+        <td class="row bg-light bd-callout bd-callout-warning">
+          Total Protein (TP)
+        </td>
+        <td class="row bg-light bd-callout bd-callout-warning">
+          Albumin (ALB)
+        </td>
+        <td class="row bg-light bd-callout bd-callout-warning">
+          Globulin (GLOB)
+        </td>
+        <td class="row bg-light bd-callout bd-callout-warning">
+          ALB to GLOB ratio (A/G)
+        </td>
+        <td class="row bg-light bd-callout bd-callout-warning">
+          Total Bilirubim (TBIL)
+        </td>
+      </tr>
+      <tr valign="top">
+        <td class="bg-light bd-callout"><input name="RBC" class="form-control"></td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+        <td class="bg-light bd-callout">RBC Input field</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!--
+Relevant css
+table {
+  display: table;
+}
+table tr {
+  display: table-cell;
+}
+table tr td {
+  display: block;
+}
+-->

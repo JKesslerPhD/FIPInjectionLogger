@@ -4,20 +4,47 @@ from django.shortcuts import redirect
 from django.db.models.functions import Cast
 from django.contrib.auth import authenticate, login
 from .models import InjectionLog, GSBrand, Cats, UserGS, SelectedCat
-from .models import UserExtension, RelapseDate
+from .models import UserExtension, RelapseDate, ObservationLog, BloodWork
+from .forms import BloodWorkForm
 from django.contrib.auth.forms import UserCreationForm
 from .forms import AddGS, RegisterForm
 from django.db.models.fields import DateField
 from django.db.models import F, DurationField, ExpressionWrapper
+from .models import WarriorTracker
 import re
 from django.core.mail import send_mail
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.template import loader, Context
+from django.http import HttpResponse
+from django.core.files.base import File
+from gdstorage.storage import GoogleDriveStorage
+import hashlib
 
 import decimal
 
 # Create your views here.
+
+def selected_cat(request):   
+  
+    if "selectedcat" not in request.GET:
+        try:
+            sc = SelectedCat.objects.filter(user=request.user)[0]
+            cat_name = sc.cat_name   
+        except:
+            try:
+                cat_name = Cats.objects.filter(owner=request.user).order_by('id')[0]
+            except:
+                return False
+        request.GET = request.GET.copy()
+        request.GET["selectedcat"] = cat_name.id
+    try:
+        cat = Cats.objects.filter(owner=request.user).filter(id=request.GET["selectedcat"])[0]
+    except:
+        return False
+            
+    return cat
 
 def register(request):
     if request.method == "POST":
@@ -34,10 +61,9 @@ def register(request):
     
     return render(request, "registration/register.html", {"form":form})
 
-def main_site(request):
-    if not request.user.is_authenticated:
-        return redirect("/information")
-        
+
+@login_required(login_url='/information')
+def main_site(request): 
     sc = None
     relapse = None
     validcats = Cats.objects.filter(owner=request.user)
@@ -100,18 +126,23 @@ def main_site(request):
     injections = InjectionLog.objects.filter(owner=request.user)
     return render(request, template, {"page":page, "progress":inj_progress,"sc":sc, "relapse":relapse, "treatment_duration":treatment_duration.days,"grouping":grouping,"validcats":validcats})
 
+def sharable_hash(cat, user):
+    key1 = str(cat).encode('utf-8')
+    key2 = str(user).encode('utf-8')
+    md5 = hashlib.md5(b"%s-%s" %(key1, key2))
+    return md5.hexdigest()
+
+@login_required
 def catinfo(request):
-    if not request.user.is_authenticated:
-        return redirect("/information")
-    
+
     page="catinfo"
+    sharable = None
     relapse = None
     validcats = Cats.objects.filter(owner=request.user)
     pattern = "[0-9]{4}\-[0-9]{2}\-[0-9]{2}"
     if request.method == "POST":
         if request.POST["CatID"]:
-
-
+            
             c = Cats.objects.get(id=request.POST["CatID"])
             
             if  "treatmentstart" in request.POST and re.match(pattern,request.POST["treatmentstart"]):
@@ -135,6 +166,9 @@ def catinfo(request):
             if request.POST["warrioradmin"]:
                 c.WarriorAdmin = request.POST["warrioradmin"]
                 
+            sharable = sharable_hash(c, request.user)
+            c.sharable = sharable
+                
             c.save()
             return redirect("/?message=update")
 
@@ -156,27 +190,60 @@ def catinfo(request):
                 WarriorAdmin = request.POST["warrioradmin"],
                 notes = request.POST["notes"]
                 )
+            sharable = sharable_hash(cats, request.user)
+            cats.sharable = sharable
             cats.save()
             return redirect("/?message=success")
+            
         
     else:
-        if "CatID" in request.GET:
+        if "CatID" in request.GET or "sharable" in request.GET:
             try:
-                cats = Cats.objects.filter(id=request.GET["CatID"])
+                if "CatID" in request.GET and request.GET["CatID"] != "0":
+                    cats = Cats.objects.filter(id=request.GET["CatID"]).filter(owner=request.user)
+                    
+                if  request.GET["CatID"] == "0":
+                    cats = [None]
+                    
+                if "sharable" in request.GET:
+                    shared = True
+                    cats = Cats.objects.filter(sharable=request.GET["sharable"])
+                    try:
+                        cats[0]
+                    except:
+                        return redirect("/?error=Invalid Share Link")
+                        
                 catnum=1
+                
+                try:
+                    bw_data = BloodWork.objects.filter(cat_name=cats[0]).filter(active=True)
+                    bloodwork = []
+                    for result in bw_data:
+                        bloodwork.append(result)
+
+                except:
+                    bloodwork = None
+                    
                 try:
                     relapse = RelapseDate.objects.filter(cat_name = cats[0])
                 except:
                     relapse=None
             except:
+                # Do Cat Sharable Logic to get the cat information
                 return redirect("/catinfo")
             
         else:
             cats = Cats.objects.filter(owner = request.user).all()
             catnum = len(cats)
-    
+            bloodwork = None
+    try:
+        cats[0]     
+    except:
+        return redirect("/catinfo")
+    sharable = sharable_hash(cats[0], request.user)
+    form = BloodWorkForm(request.POST, request.FILES)
     template = "InjectionLog/catinfo.html"
-    return render(request, template, {"page":page, "cats":cats, "relapse":relapse, "catnum":catnum, "validcats":validcats})
+    return render(request, template, {"page":page, "cats":cats, "relapse":relapse, "sharable":sharable, "catnum":catnum,'form':form,"bloodwork":bloodwork, "validcats":validcats})
     
 def information(request):
     template ='InjectionLog/information.html'
@@ -214,10 +281,9 @@ def calculatedosage(request):
 def logout_view(request):
     logout(request)
     return redirect("/")
-
+    
+@login_required
 def delete_injection(request):
-    if not request.user.is_authenticated:
-        return redirect(settings.LOGIN_URL,request.path)
     if "delete_id" not in request.GET:
         return redirect("/?error=No record ID was specified")
     
@@ -228,15 +294,38 @@ def delete_injection(request):
             cat = Cats.objects.filter(owner=request.user).order_by('id')[0]
         except:
             return redirect("/?error=Problem finding cat for your account")
-    try:        
-        q = InjectionLog.objects.filter(owner=request.user).filter(cat_name=cat).filter(id=request.GET["delete_id"]).get()
+    
+    try:
+        log_type = request.GET["log"]
+    except:
+        return redirect("/?error=No log specified")
+        
+    try:
+        if log_type == "observationlog":
+            q = ObservationLog.objects.filter(owner=request.user).filter(cat_name=cat).filter(id=request.GET["delete_id"]).get()
+        
+        if log_type == "log":
+            q = InjectionLog.objects.filter(owner=request.user).filter(cat_name=cat).filter(id=request.GET["delete_id"]).get()
+        
+        if log_type == "bloodwork":          
+            q = BloodWork.objects.filter(cat_name=cat).filter(id=request.GET["delete_id"]).get()
+            q.bloodwork.delete()
 
+        
+        if log_type == "tracker":
+            q = WarriorTracker.objects.filter(user=request.user).filter(id=request.GET["delete_id"]).delete()
+            return redirect("/trackwarrior")
+            
     except:
         return redirect("/?error=You do not have access to this resource")
     
     q.active=False
     q.save()
-    return redirect("/log/?message=update&selectedcat=%s&q=%s" % (cat.id,q.id))
+    
+    if log_type == "bloodwork":
+        return redirect("/catinfo/?message=update&CatID=%s" % (cat.id))
+        
+    return redirect("/%s/?message=update&selectedcat=%s&q=%s" % (log_type, cat.id,q.id))
 
 @login_required
 def add_gs(request):
@@ -274,19 +363,8 @@ def recordinjection(request):
     page="injection"
     drugs = GSBrand.objects.all().order_by('brand')
     userGS = UserGS.objects.all()
-    try:
-        sc = SelectedCat.objects.filter(user=request.user)[0]
-        cat_name = sc.cat_name   
-    except:
-        try:
-            cat_name = Cats.objects.filter(owner=request.user).order_by('id')[0]
-        except:
-            pass
-            
-    request.GET = request.GET.copy()
-    try:
-        request.GET["selectedcat"] = cat_name.id
-    except:
+    cat_name = selected_cat(request)
+    if not cat_name:
         return redirect("/?error=Please add a cat to your account first")
 
     try:
@@ -312,7 +390,6 @@ def recordinjection(request):
         user   = request.user
         cat = Cats.objects.get(id=request.POST["selectedcat"])
         weight = request.POST["CatWeight"]
-        print(request.POST["brand_value"])
         brand  = GSBrand.objects.get(brand=request.POST["brand_value"])
         i_date = request.POST["inj_date"]
         rating = request.POST["cat_rating"]
@@ -358,18 +435,13 @@ def recordinjection(request):
 
     return render(request, template, {"page":page, "dose":True,"drugs":drugs,"userGS":userGS, "validcats":validcats})
 
-    
+@login_required    
 def injectionlog(request):
-    if not request.user.is_authenticated:
-        return redirect(settings.LOGIN_URL,request.path)
     validcats = Cats.objects.filter(owner=request.user)
-    try:
-        cat = Cats.objects.filter(owner=request.user).filter(id=request.GET["selectedcat"])[0]
-    except:
-        try: 
-            cat = Cats.objects.filter(owner=request.user).order_by('id')[0]
-        except:
-            return redirect("/?error=No data has been recorded...")
+    cat = selected_cat(request)
+    
+    if not cat:
+        return redirect("/?error=No data has been recorded...")
     
     template ='InjectionLog/injlog.html'
     page="log"
@@ -380,7 +452,85 @@ def injectionlog(request):
         active=True).annotate(
         inj_date = ExpressionWrapper(Cast(F('injection_time'), DateField())-F('cat_name__treatment_start'),output_field=DurationField())).order_by('injection_time')
     return render(request, template, {"page":page,"injections":injections,"validcats":validcats, "cat":cat})
+
+@login_required
+def observation_log(request):
     
+    validcats = Cats.objects.filter(owner=request.user).filter(treatment_start__lte=(datetime.now()-timedelta(days=84)))
+    cat = selected_cat(request)
+    
+    if not cat:
+        return redirect("/?error=No data has been recorded...")
+
+            
+    
+    template ='InjectionLog/observation_log.html'
+    page="log"
+    
+    try:
+        relapse = RelapseDate.objects.filter(cat_name = cat.cat_name).order_by('-relapse_start')[0] 
+    except:
+        relapse = None
+        
+        
+    
+    observations = ObservationLog.objects.filter(
+        owner=request.user).filter(
+        cat_name=cat).filter(
+        active=True)
+    
+    
+        
+    return render(request, template, {"page":page,"relapse":relapse, "observations":observations,"validcats":validcats, "cat":cat})
+
+
+
+@login_required
+def record_observation(request):
+    validcats = Cats.objects.filter(owner=request.user)
+    template = "InjectionLog/record_observation.html"
+    
+    if request.method == "POST":
+        
+        user   = request.user
+        cat = Cats.objects.get(id=request.POST["selectedcat"])
+        weight = request.POST["CatWeight"]
+        wt_units = request.POST["weight_units"]
+        obs_date = request.POST["observation_date"]
+        rating = request.POST["cat_rating"]
+        temperature = request.POST["temperature"]
+        temp_units = request.POST["temp_units"]
+        notes = request.POST["notes"]
+        
+        if temperature == "":
+            temperature = None
+        if weight == "":
+            weight = None
+
+        
+        log = ObservationLog(
+                owner = user, 
+                cat_name = cat,
+                cat_weight= weight,
+                wt_units = wt_units,
+                observation_date = obs_date,
+                temperature = temperature,
+                temp_units = temp_units,
+                cat_behavior_today = rating,
+                notes = notes)
+        log.save()
+        return redirect("/?message=success")
+        
+    cat = selected_cat(request)
+    
+    if not cat:
+        return redirect("/?error=Please add a cat to your account first")
+        
+    request.GET = request.GET.copy()
+    request.GET["selectedcat"] = cat.id
+    
+    
+    return render(request,template, {"validcats":validcats})
 
 def signup(request):
     if request.method == 'POST':
@@ -395,3 +545,69 @@ def signup(request):
     else:
         form = UserCreationForm()
     return render(request, 'signup.html', {'form': form})
+
+@login_required    
+def upload_file(request):
+    if request.method == 'POST':
+        
+        form = BloodWorkForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+                       
+            return redirect('/catinfo?message=success&CatID=%s' % request.POST["cat_name"])
+        else:
+            return redirect('/catinfo?error=Could Not Upload Blood Work&CatID=%s' % request.POST["cat_name"])
+    else:
+        form = BloodWorkForm()
+    
+    return redirect('/catinfo')
+        
+    
+
+def load_file(request):
+    cat = Cats.objects.get(id=8)
+    data = BloodWork.objects.filter(cat_name=cat)
+    bloodwork = []
+    for result in data:
+        bloodwork.append(result)
+    django_file = bloodwork[0]
+    
+    
+    t ='InjectionLog/view_file.html'
+    gd_storage = None
+    return render(request, t, {'file':django_file, "data": bloodwork, 'storage':gd_storage})
+    
+def parse_sharable_url(url):
+    pattern = "^(.*)([a-z0-9]{32})$"
+    try:
+        share_hash = re.match(pattern, url).groups()[1]
+        cat = Cats.objects.get(sharable = share_hash)
+        return share_hash
+    except:
+        return False
+    
+
+@login_required
+def track_warrior(request):
+    if request.method == "POST":
+        share_hash = parse_sharable_url(request.POST["share_link"])
+        share_name = request.POST["identifier"]
+        
+        if share_hash:
+            sh = WarriorTracker(
+            user = request.user,
+            md5hash = share_hash,
+            identifier = share_name)
+            sh.save()
+            return redirect("/trackwarrior/?message=success")
+        else:
+            return redirect("/trackwarrior/?error=Invalid Sharing Link")
+    
+    tracking = WarriorTracker.objects.filter(user = request.user)
+        
+    
+    return render(request, "InjectionLog/tracker.html",{"tracking":tracking})
+
+
+
+

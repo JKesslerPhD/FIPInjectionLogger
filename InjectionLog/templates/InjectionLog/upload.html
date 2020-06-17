@@ -1,0 +1,74 @@
+{% extends 'InjectionLog/index.html' %}
+{% load groupfilter %}
+{% block maincontent %}
+{% block title %}Upload a File{% endblock %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div>
+{{ data }}
+</div>
+  <div class="container">
+    <form method="POST" class="form-group" enctype="multipart/form-data">
+	{% csrf_token %}
+
+  <div class="modal-body">
+
+      {% csrf_token %}
+      <input type="hidden" name="cat_name" value="8">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="bloodname" class="control-label">CBC Type</label>
+            <select no-validate class="form-control" name="bloodname" id="id_bloodname">
+              <option value=""></option>
+              <option value="At Diagnosis">At Diagnosis</option>
+              <option value="Week 4">Week 4</option>
+              <option value="Week 8">Week 8</option>
+              <option value="Week 12">Week 12</option>
+              <option value="Other Upload">Other</option>
+            </select>
+          </div>
+        </div>
+       </div>
+       <div class="row">
+         <div class="col-md-6">
+           <div class="form-group">
+             <label for="id_bloodwork" class="control-label">Choose Bloodwork File:</label>
+             <input type="file" name="bloodwork" id="id_bloodwork" accept=".jpg,.gif,.png,.pdf">
+
+           </div>
+         </div>
+       </div>
+       <div class="row">
+         <div class="col-md-6">
+           <div class="form-group">
+             <input type="date" max="{{now|max_time|date:'Y-m-d'}}" class="form-control" name="bloodwork_date" value="{{now|max_time|date:'Y-m-d'}}" id="id_bloodwork_date">
+             <label for="id_bloodwork_date" class="control-label">Bloodwork Date</label>
+           </div>
+         </div>
+       </div>
+       <div class="row">
+         <div class="col-md-6">
+           <div class="form-group">
+             <textarea type="date"  max="{{now|max_time|date:'Y-m-d'}}" class="form-control" name="notes" id="id_notes"></textarea>
+             <label for="id_notes" class="control-label">Additional Notes/Comments</label>
+           </div>
+         </div>
+       </div>
+  </div>
+  <div class="modal-footer">
+      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      <button id="btnSubmitModal" type="button" class="btn btn-info">Save changes</button>
+  </div>
+  <div class="alert alert-danger" style="display:none" id="validation_message">Nothing</div>
+  </div>
+  	<button type="submit" class="btn btn-success">Upload</button>
+    </div>
+</form>
+</div>
+<hr>
+
+{% endblock %}
+
+{% endblock %}

@@ -25,10 +25,11 @@
     <div class="container mb-3">
 
       <div class="progress mb-3">
-        <div class="progress-bar bg-warning" role="progressbar" style="width: {% if relapse %} {{progress.inj_date|duration_progress}} {% else %} {{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%" aria-valuenow="{% if relapse %} {{progress.inj_date|duration_progress}} {% else %} {{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%" aria-valuemin="0" aria-valuemax="100">{% if relapse %} {{progress.inj_date|duration_progress}} {% else %} {{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}{% endif %}% of Injections Logged </div>
+        <div class="progress-bar progress-bar-striped bg-warning" role="progressbar" style="width:{% if relapse %}{{progress.inj_date|duration_progress}}{% else %}{{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%" aria-valuenow="{% if relapse %}{{progress.inj_date|duration_progress}}{% else %}{{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%" aria-valuemin="0" aria-valuemax="100">{% if relapse %}{{progress.inj_date|duration_progress}}{% else %}{{progress.inj_date|duration_progress:sc.cat_name.extended_treatment}}{% endif %}% of Injections Logged </div>
       </div>
       <div class="progress mb-3">
-        <div class="progress-bar bg-success" role="progressbar" style="width: {% if relapse %} {{treatment_duration|duration_progress}} {% else %} {{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%" aria-valuenow="{% if relapse %} {{treatment_duration|duration_progress}} {% else %} {{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}{% endif %}% aria-valuemin="0" aria-valuemax="100">{% if relapse %} {{treatment_duration|duration_progress}} {% else %} {{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%% of Days Completed</div>
+
+        <div class="progress-bar bg-success" role="progressbar" style="width: {% if relapse %}{{treatment_duration|duration_progress}}{% else %}{{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%" aria-valuenow="{% if relapse %}{{treatment_duration|duration_progress}}{% else %}{{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}{% endif %}%" aria-valuemin="0" aria-valuemax="100">{% if relapse %}{{treatment_duration|duration_progress}}{% else %}{{treatment_duration|duration_progress:sc.cat_name.extended_treatment}}{% endif %}% of Days Completed</div>
       </div>
 
       <form action="/" method="GET">
@@ -89,7 +90,28 @@
       {% endif %}
       <div class="card-deck">
         <div class="row">
-          {% if treatment_duration >= 84|add:sc.cat_name.extended_treatment %}
+        {% if treatment_duration >= 84|add:sc.cat_name.extended_treatment %}
+
+        <div class="col-sm-6 mb-3">
+          <div class="card bg-light" style="width: 18rem;">
+            <div class="card-header">
+              <h5 class="card-title">
+                <svg class="bi bi-pencil-square" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456l-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                  <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                </svg>
+                <span>Add Observations</span>
+              </h5>
+            </div>
+            <div class="card-body">
+
+              <p class="card-text">The observation period can be stressful.  It is often useful to record weight and temperature, as well as general daily behaviors so you can see patterns in how your cat is doing.</p>
+              <a class="btn btn-success" href="/record_observation" role="button">Record an Observation</a>
+            </div>
+          </div>
+        </div>
+
+
           <div class="col-sm-6 mb-3">
             <div class="card bg-light" style="width: 18rem;"">
               <div class="card-header">
@@ -98,20 +120,20 @@
                     <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2H0z"/>
                     <path fill-rule="evenodd" d="M0 3h16v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3zm6.5 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm4-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm2 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-8 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm2 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm4-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm2 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-8 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm2 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm4-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
                   </svg>
-                  <span>Record Observation during period</span>
+                  <span>View Observation Log</span>
                 </h5>
               </div>
               <div class="card-body">
                 <p class="card-text">See past data so you know how your cat has been doing.</p>
-                <a class="btn btn-success" href="/log" role="button">View Log</a>
+                <a class="btn btn-success" href="/observationlog" role="button">View Observation Log</a>
               </div>
             </div>
           </div>
 
-          {% endif %}
-
+        {% endif %}
+        {% if treatment_duration <= 90|add:sc.cat_name.extended_treatment %}
           <div class="col-sm-6 mb-3">
-            <div class="card bg-light" style="width: 18rem;"">
+            <div class="card bg-light" style="width: 18rem;">
               <div class="card-header">
                 <h5 class="card-title">
                   <svg class="bi bi-pencil-square" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -128,6 +150,7 @@
               </div>
             </div>
           </div>
+          {% endif %}
 
           <div class="col-sm-6 mb-3">
             <div class="card bg-light" style="width: 18rem;"">
@@ -137,12 +160,12 @@
                     <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2H0z"/>
                     <path fill-rule="evenodd" d="M0 3h16v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3zm6.5 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm4-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm2 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-8 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm2 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm4-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm2 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-8 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm2 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm4-1a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
                   </svg>
-                  <span>View Log</span>
+                  <span>View Treatment Log</span>
                 </h5>
               </div>
               <div class="card-body">
                 <p class="card-text">See past data so you know how your cat has been doing.</p>
-                <a class="btn btn-success" href="/log" role="button">View Log</a>
+                <a class="btn btn-success" href="/log" role="button">View Treatment Log</a>
               </div>
             </div>
           </div>
@@ -161,6 +184,23 @@
               <div class="card-body">
                 <p class="card-text">Used to determine the volume of GS needed for an injection</p>
                 <a class="btn btn-dark" href="/calculate" role="button">Calculate Dose</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 mb-3">
+            <div class="card bg-light" style="width: 18rem;"">
+              <div class="card-header">
+                <h5 class=card-title">
+                  <svg class="bi bi-people" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.995-.944v-.002.002zM7.022 13h7.956a.274.274 0 0 0 .014-.002l.008-.002c-.002-.264-.167-1.03-.76-1.72C13.688 10.629 12.718 10 11 10c-1.717 0-2.687.63-3.24 1.276-.593.69-.759 1.457-.76 1.72a1.05 1.05 0 0 0 .022.004zm7.973.056v-.002.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10c-1.668.02-2.615.64-3.16 1.276C1.163 11.97 1 12.739 1 13h3c0-1.045.323-2.086.92-3zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+                  </svg>
+                  <span>Track Other Warriors</span>
+                </h5>
+              </div>
+              <div class="card-body">
+                <p class="card-text">If another warrior gives you their share link, you can track their cat information and injection log.</p>
+                <a class="btn btn-warning" href="/trackwarrior" role="button">Track Others</a>
               </div>
             </div>
           </div>

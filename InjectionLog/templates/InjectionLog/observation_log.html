@@ -2,7 +2,7 @@
 {% load groupfilter %}
 {% block maincontent %}
 <div class="container">
-<form action="/log/" method="GET">
+<form action="/observationlog/" method="GET">
   <div class="alert alert-dark">
     <div class="form-row col-md-6 mb-3">
       <label for="selectedcat">Selected Cat </label>
@@ -21,31 +21,30 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th scope="col">Date</th>
-        <th scope="col">Day Number</th>
+
+        <th scope="col">Date </th>
+        <th scope="col">Observation Day</th>
         <th scope="col">Weight</th>
-        <th scope="col">Cat Behavior</th>
-        <th scope="col">Amount given (mL)</th>
-        <th scope="col">Gaba Dosage mg</th>
-        <th scope="col">Injection Notes</th>
-        <th scope="col">Other Notes</th>
+        <th scope="col">Temperature</th>
+        <th scope="col">Cat Rating</th
+        <th scope="col">Notes</th>
         <th scope="col">Delete Record</th>
 
       </tr>
     </thead>
     <tbody>
-    {% for injection in injections %}
+    {% for observation in observations %}
       <tr>
-        <th scope="row">{{ injection.injection_time}} </th>
-        <td>{{ injection.inj_date|duration_days}}</td>
-        <td>{{ injection.cat_weight }} {{injection.wt_units}}</td>
-        <td>{{ injection.cat_behavior_today}}</td>
-        <td>{{ injection.injection_amount }}</td>
-        <td>{{ injiection.gaba_dose }}</td>
-        <td>{{ injection.injection_notes }}</td>
-        <td>{{ injection.other_notes }}</td>
+        <th scope="row">{{ observation.observation_date}} </th>
+        {% with extension=cat.extended_treatment|add:84 %}
+        <td>{% if relapse %}{{ relapse.relapse_start|elapsed:84 }} {% else %} {{cat.treatment_start|elapsed:extension}} {% endif %}</td>
+        {% endwith %}
+        <td>{% if observation.cat_weight %}{{ observation.cat_weight }} {{observation.wt_units}}{% endif %}</td>
+        <td>{% if observation.temperature %}{{ observation.temperature }} {{observation.temp_units}}{% endif %}</td>
+        <td>{{ observation.cat_behavior_today }}</td>
+        <td>{{ observation.notes }}</td>
         <td>
-          <a href="/delete?delete_id={{injection.id}}&selectedcat={{request.GET.selectedcat}}&log=log" onclick="return confirm('Are you sure you want to delete this?')">
+          <a href="/delete?delete_id={{observation.id}}&selectedcat={{request.GET.selectedcat}}&log=observationlog" onclick="return confirm('Are you sure you want to delete this?')">
             <svg class="bi bi-trash2" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
               <path fill-rule="evenodd" d="M3.18 4l1.528 9.164a1 1 0 0 0 .986.836h4.612a1 1 0 0 0 .986-.836L12.82 4H3.18zm.541 9.329A2 2 0 0 0 5.694 15h4.612a2 2 0 0 0 1.973-1.671L14 3H2l1.721 10.329z"/>
               <path d="M14 3c0 1.105-2.686 2-6 2s-6-.895-6-2 2.686-2 6-2 6 .895 6 2z"/>

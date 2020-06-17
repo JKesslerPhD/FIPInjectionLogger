@@ -30,6 +30,9 @@ DEBUG = True
 # SECURE_SSL_REDIRECT = True
 # SESSION_COOKIE_SECURE = True
 
+GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = 'SlayFIP/southern-surge-278721-bdb28525ed1e.json'
+GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = 'FIPlog' # OPTIONAL
+
 ALLOWED_HOSTS = ['fiplog.com','localhost']
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -38,7 +41,18 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'fiplog.website@gmail.com'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 CRISPY_TEMPLATE_PACK="bootstrap4"
+
+# 2.5MB - 2621440
+# 5MB - 5242880
+# 10MB - 10485760
+# 20MB - 20971520
+# 50MB - 5242880
+# 100MB 104857600
+# 250MB - 214958080
+# 500MB - 429916160
+MAX_UPLOAD_SIZE = "2621440"
 
 ####
 # Additional User Actions Required
@@ -49,6 +63,7 @@ CRISPY_TEMPLATE_PACK="bootstrap4"
 
 INSTALLED_APPS = [
     'bootstrap4',
+    'gdstorage',
     'crispy_forms',
     'django.contrib.admin',
     'django.contrib.auth',

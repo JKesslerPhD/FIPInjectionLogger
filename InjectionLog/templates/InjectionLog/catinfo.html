@@ -5,7 +5,7 @@
 {% if catnum >= 1 and not request.GET.CatID %}
 <main role="main">
 <div class="container">
-
+{{shared}}
   <form action="/catinfo/" method="GET">
     <div class="alert alert-info">
       <div class="form-group">
@@ -34,117 +34,395 @@
 
 {% if cat.owner == request.user or request.user|has_group:"WarriorAdmin" or not request.GET.CatID or request.GET.CatID == '0' %}
 <main role="main">
-<div class="container">
-  <div class="alert alert-secondary">
-    <form class="needs-validation" novalidate action="/catinfo/" id="catinfo" method="POST">
-      {% csrf_token %}
-    <input type="hidden" name="CatID" value="{{cat.id}}">
-    <h4>Cat Information</h4>
-    <div class="form-group">
-      <label for="CatName">Cat Name</label>
-      <div class="input-group mb-3">
-        <input class="form-control" required name="CatName" value="{{cat.name}}" id="CatName" {% if cat.id %} disabled {% endif %}>
+  <div class="container">
+    <div class="alert alert-primary row align-items-center">
+      <div class="col-md-3">
+        <a id="sharable_link" href="/catinfo?CatID=0&sharable={{sharable}}" onclick="copy_sharable();">Sharable Link</a>
       </div>
-    </div>
-    <div class="form-group">
-      <label for="FIP Type">FIP Type</label>
-      <div class="input-group mb-3">
-        <div class="col-5">
-          <select required name="FIP Type" class="form-control" {% if cat.id %} disabled {% endif %}>
-            <option value="">Select FIP-Type</option>
-            <option value="wet" {% if cat.fip_type == "wet" %} Selected {% endif %}>Wet FIP</option>
-            <option value="dry" {% if cat.fip_type == "dry" %} Selected {% endif %}>Dry FIP</option>
-
-          </select>
-        </div>
-        <div class="col">
-          <input {% if cat.id %} disabled {% endif %} class="form-check-input" type="checkbox" {% if cat.ocular %} checked {% endif %} value="" id="Ocular" name="Ocular">
-          <label class="form-check-label" for="Ocular">
-            Ocular Involvement
-          </label>
-      </div>
-      <div class="col">
-        <input {% if cat.id %} disabled {% endif %} class="form-check-input" type="checkbox" {% if cat.neuro %} checked {% endif %} id="Neuro" name="Neuro">
-        <label class="form-check-label" for="Neuro">
-          Neuro Symptoms
-        </label>
-    </div>
-    </div>
-    <div class="form-group">
-      <label for="CatBirthday">Birthday</label>
-      <div class="input-group mb-3 col-xsm-1">
-         <input {% if cat.id %} disabled {% endif %} type="date" required class="form-control" value="{{cat.birthday|date:'Y-m-d'}}" name="CatBirthday" id="CatBirthday" />
-
+      <div class="col align-self-end">
+        <button id="link_copy" class="btn btn-secondary" onclick="copy_sharable();">Copy Link</button>
       </div>
     </div>
 
-
-    <hr>
-    <div class="alert alert-warning container">
-      <h4>Treatment Information</h4>
-      <div class="form-row mb-3">
-      <label for="treatmentstart">Treatment Start Date</label>
-        <input name="treatmentstart" class="form-control" type="date" value="{{cat.treatment_start|date:'Y-m-d'}}" {% if cat.treatment_start %} disabled {% endif %} id="treatmentstart">
-      </div>
-
-
-      {% if cat.treatment_start|elapsed|add:0 >= 50 %}
-      <div class="form-row col-sm-6 mb-3">
-        <label for="extendedtreatment">Additional Days for Extended Treatment</label>
-        <div class="input-group col-sm-6">
-          <input name="extendedtreatment" class="form-control" type="number" value="{{cat.extended_treatment}}" id="extendedtreatment" {% if relapse %} disabled {% endif %}>
-        </div>
-        <div class="form-group-append">
-          <span class="input-group-text">days</span>
+    <div class="alert alert-secondary">
+      <form class="needs-validation" novalidate action="/catinfo/" id="catinfo" method="POST">
+        {% csrf_token %}
+      <input type="hidden" name="CatID" value="{{cat.id}}">
+      <h4>Cat Information</h4>
+      <div class="form-group">
+        <label for="CatName">Cat Name</label>
+        <div class="input-group mb-3">
+          <input class="form-control" required name="CatName" value="{{cat.name}}" id="CatName" {% if cat.id %} disabled {% endif %}>
         </div>
       </div>
-      {% endif %}
-
-      <div class="form-row mb-3">
-      <label for="warrioradmin">Warrior Admin</label>
-        <input name="warrioradmin" class="form-control" value="{{cat.WarriorAdmin}}" id="warrioradmin">
-      </div>
-
-    {% if cat.treatment_start|elapsed|add:0 >= 50 %}
-      <div class="form-row col-md-6 mb-3">
-        <div class="custom-control custom-switch">
-          <input name="relapse" {% if cat.relapse %} checked {% endif %} type="checkbox" class="custom-control-input" id="relapse" {% if relapse %} disabled {% endif %} onchange="relapse_trigger();">
-          <label class="custom-control-label" for="relapse">Cat Has Relapsed</label>
+      <div class="form-group">
+        <label for="FIP Type">FIP Type</label>
+        <div class="input-group mb-3">
+          <div class="col-5">
+            <select required name="FIP Type" class="form-control" {% if cat.id %} disabled {% endif %}>
+              <option value="">Select FIP-Type</option>
+              <option value="wet" {% if cat.fip_type == "wet" %} Selected {% endif %}>Wet FIP</option>
+              <option value="dry" {% if cat.fip_type == "dry" %} Selected {% endif %}>Dry FIP</option>
+            </select>
+          </div>
+          <div class="col">
+            <input {% if cat.id %} disabled {% endif %} class="form-check-input" type="checkbox" {% if cat.ocular %} checked {% endif %} value="" id="Ocular" name="Ocular">
+            <label class="form-check-label" for="Ocular">
+              Ocular Involvement
+            </label>
+          </div>
+          <div class="col">
+            <input {% if cat.id %} disabled {% endif %} class="form-check-input" type="checkbox" {% if cat.neuro %} checked {% endif %} id="Neuro" name="Neuro">
+            <label class="form-check-label" for="Neuro">
+              Neuro Symptoms
+            </label>
+          </div>
         </div>
-        <div class="container" id="relapse_fields" {% if cat.relapse %} style="display:block;" {% else %} style="display:none" {% endif %}>
-          <div class="alert alert-danger">
-          {% for date in relapse %}
-            <div class="form-row mb-3">
-              <label for="relapse_date_{{forloop.counter}}">Relapse Start Date</label>
-              <input name="relapse_date_{{forloop.counter}}" class="form-control" type="date" value="{{date.relapse_start|date:'Y-m-d'}}" {% if date.relapse_start %} disabled {% endif %} id="relapse_date_{{forloop.counter}}">
-            </div>
-          {% endfor %}
+        <div class="form-group">
+          <label for="CatBirthday">Birthday</label>
+          <div class="input-group mb-3 col-xsm-1">
+             <input {% if cat.id %} disabled {% endif %} type="date" max="{{now|max_time|date:'Y-m-d'}}" required class="form-control" value="{{cat.birthday|date:'Y-m-d'}}" name="CatBirthday" id="CatBirthday" />
+          </div>
+        </div>
+
+
+        <hr>
+        <div class="alert alert-warning container">
+          <h4>Treatment Information</h4>
           <div class="form-row mb-3">
-            <label for="relapse_date">New Relapse Start Date</label>
-            <input name="relapse_date" class="form-control" type="date" value="" id="relapse_date">
-            <small class="form-text">Please record every new instance of relapse.  This will impact your treatment countdown.</small>
+            <label for="treatmentstart">Treatment Start Date</label>
+            <input name="treatmentstart" class="form-control" type="date" max="{{now|max_time|date:'Y-m-d'}}" value="{{cat.treatment_start|date:'Y-m-d'}}" {% if cat.treatment_start %} disabled {% endif %} id="treatmentstart">
           </div>
+
+
+          {% if cat.treatment_start|elapsed|add:0 >= 50 %}
+          <div class="form-row col-sm-6 mb-3">
+            <label for="extendedtreatment">Additional Days for Extended Treatment</label>
+            <div class="input-group col-sm-6">
+              <input name="extendedtreatment" class="form-control" type="number" value="{{cat.extended_treatment}}" id="extendedtreatment" {% if relapse %} disabled {% endif %}>
+            </div>
+            <div class="form-group-append">
+              <span class="input-group-text">days</span>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="form-row mb-3">
+          <label for="warrioradmin">Warrior Admin</label>
+            <input name="warrioradmin" class="form-control" value="{{cat.WarriorAdmin}}" id="warrioradmin">
+          </div>
+
+          {% if cat.treatment_start|elapsed|add:0 >= 50 %}
+          <div class="form-row col-md-6 mb-3">
+            <div class="custom-control custom-switch">
+              <input name="relapse" {% if cat.relapse %} checked {% endif %} type="checkbox" class="custom-control-input" id="relapse" {% if relapse %} disabled {% endif %} onchange="relapse_trigger();">
+              <label class="custom-control-label" for="relapse">Cat Has Relapsed</label>
+            </div>
+            <div class="container" id="relapse_fields" {% if cat.relapse %} style="display:block;" {% else %} style="display:none" {% endif %}>
+              <div class="alert alert-danger">
+              {% for date in relapse %}
+                <div class="form-row mb-3">
+                  <label for="relapse_date_{{forloop.counter}}">Relapse Start Date</label>
+                  <input name="relapse_date_{{forloop.counter}}" class="form-control" max="{{now|max_time|date:'Y-m-d'}}" type="date" value="{{date.relapse_start|date:'Y-m-d'}}" {% if date.relapse_start %} disabled {% endif %} id="relapse_date_{{forloop.counter}}">
+                </div>
+              {% endfor %}
+              <div class="form-row mb-3">
+                <label for="relapse_date">New Relapse Start Date</label>
+                <input name="relapse_date" class="form-control" type="date"  max="{{now|max_time|date:'Y-m-d'}}" value="" id="relapse_date">
+                <small class="form-text">Please record every new instance of relapse.  This will impact your treatment countdown.</small>
+              </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+            <div class="form-row col-md-6 mb-3">
+              <label for="notes">Other Notes</label>
+              <textarea class="form-control" name="notes" id="notes" rows="2">{{cat.notes}}</textarea>
+            </div>
+          </div>
+          <hr>
+
+          <div class="form-row mb-3">
+            <input type="hidden" name="submission_type" value="user_defined">
+            <input type="submit" {% if request.GET.sharable %} disabled {% endif %} class="btn btn-secondary" role="button" value="Save Cat Information">
+          </div>
+          <div class="alert alert-danger" style="display:none" id="validation_message">Nothing</div>
+        </div>
+      </form>
+      <hr>
+      <div class="alert alert-info container" {%if cat.id %} style="display:block" {% else %}style="display:none" {% endif %}>
+        <h4>Add Blood Work and other Files</h4>
+        <small>Limited to 2MB Uploads</small>
+        {% if bloodwork %}
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Bloodwork Date</th>
+                <th scope="col">File</th>
+                <th scope="col">Notes</th>
+                <th scope="col">Delete Record</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for result in bloodwork %}
+              <tr>
+                <td>{{result.bloodwork_date}}</td>
+                <td><a href ="{{result.bloodwork.url|parse_url}}" target="_blank"> {{result.bloodname}}</a></td>
+                <td>{{result.notes}}</td>
+                <td>
+                  <a href="/delete?delete_id={{result.id}}&selectedcat={{request.GET.CatID}}&log=bloodwork" onclick="return confirm('Are you sure you want to delete this?')">
+                    <svg class="bi bi-trash2" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path fill-rule="evenodd" d="M3.18 4l1.528 9.164a1 1 0 0 0 .986.836h4.612a1 1 0 0 0 .986-.836L12.82 4H3.18zm.541 9.329A2 2 0 0 0 5.694 15h4.612a2 2 0 0 0 1.973-1.671L14 3H2l1.721 10.329z"/>
+                      <path d="M14 3c0 1.105-2.686 2-6 2s-6-.895-6-2 2.686-2 6-2 6 .895 6 2z"/>
+                      <path fill-rule="evenodd" d="M12.9 3c-.18-.14-.497-.307-.974-.466C10.967 2.214 9.58 2 8 2s-2.968.215-3.926.534c-.477.16-.795.327-.975.466.18.14.498.307.975.466C5.032 3.786 6.42 4 8 4s2.967-.215 3.926-.534c.477-.16.795-.327.975-.466zM8 5c3.314 0 6-.895 6-2s-2.686-2-6-2-6 .895-6 2 2.686 2 6 2z"/>
+                    </svg>
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+        <div id="upload_modal">
+          <button {% if request.GET.sharable %} disabled {% endif %} type="button" class="btn btn-primary" data-toggle="modal" data-target="#bw-modal">
+          Upload CBC
+          </button>
+            <div class="modal fade" id="bw-modal">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Choose File to Upload</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <form class="needs-validation" novalidate action="/upload_cbc/" method="POST" id="add_cbc" name="add_cbc" enctype="multipart/form-data">
+                      <div class="modal-body">
+
+                          {% csrf_token %}
+                          <input type="hidden" name="cat_name" value="{{request.GET.CatID}}">
+                          <div class="row">
+                            <div class="col-md-6 mb-3">
+                              <div class="form-group">
+                                <label for="bloodname" class="control-label">CBC Type</label>
+                                <select no-validate class="form-control" name="bloodname" id="id_bloodname">
+                                  <option value="At Diagnosis">At Diagnosis</option>
+                                  <option value="Week 4">Week 4</option>
+                                  <option value="Week 8">Week 8</option>
+                                  <option value="Week 12">Week 12</option>
+                                  <option value="Other Upload">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                           </div>
+                           <div class="row">
+                             <div class="col-md-6 mb-3">
+                               <div class="form-group">
+                                 <label for="id_bloodwork" class="control-label">Choose Bloodwork File</label>
+                                 <input type="file" name="bloodwork" id="id_bloodwork" accept=".jpg,.gif,.png,.pdf">
+
+                                 <div><small>Must be a .pdf or image file.</small></div>
+
+                               </div>
+                             </div>
+                           </div>
+                           <div class="row">
+                             <div class="col-md-6 mb-3">
+                               <div class="form-group">
+                                 <label for="id_bloodwork_date" class="control-label">Bloodwork Date</label>
+                                 <input type="date" max="{{now|max_time|date:'Y-m-d'}}" class="form-control" name="bloodwork_date" value="{{now|max_time|date:'Y-m-d'}}" id="id_bloodwork_date">
+
+                               </div>
+                             </div>
+                           </div>
+                           <div class="row">
+                             <div class="col-md-6 mb-3">
+                               <div class="form-group">
+                                 <label for="id_notes" class="control-label">Additional Notes/Comments</label>
+                                 <textarea type="date"  max="{{now|max_time|date:'Y-m-d'}}" class="form-control" name="notes" id="id_notes"></textarea>
+
+                               </div>
+                             </div>
+                           </div>
+                      </div>
+                      <div class="modal-footer">
+                          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                          <button id="btnSubmitModal" {% if request.GET.sharable %} disabled {% endif %} type="submit" class="btn btn-info">Upload File</button>
+                      </div>
+                    </form>
+                    </div>
+                  </div>
+              </div>
+            </div>
+            <!--End Modal-->
+        </div>
+        <div class="alert alert-danger container" {%if cat.id %} style="display:block" {% else %}style="display:none" {% endif %}>
+          <h4>Bloodwork Summary</h4>
+          <small>Fill this out to make it easier to flag FIP-relevant values</small>
+          <div class="container">
+            <table class="table table-sm">
+              <tr>
+
+                <td class="row align-items-start bg-light bd-callout bd-callout-danger">
+                  Red Blood Cells (RBC)
+                </td>
+                <td class="row bg-light bd-callout bd-callout-danger">
+                  HCT (Hematocrit)
+                </td>
+                <td class="row bg-light bd-callout bd-callout-danger">
+                  Hemaglobin (HGB)
+                </td>
+                <td class="row bg-light bd-callout">
+                  White Blood Cells (WBC)
+                </td>
+                <td class="row bg-light bd-callout">
+                  % Lymphocytes (%LYM)
+                </td>
+                <td class="row align-items-start bg-light bd-callout">
+                  % Neutrophils (%NEU)
+                </td>
+                <td class="row bg-light bd-callout">
+                  Absolute Lymphocyte Count (LYM)
+                </td>
+                <td class="row bg-light bd-callout">
+                  Absolute Neutrophil Count (NEU)
+                </td>
+                <td class="row bg-light bd-callout bd-callout-warning">
+                  Total Protein (TP)
+                </td>
+                <td class="row bg-light bd-callout bd-callout-warning">
+                  Albumin (ALB)
+                </td>
+                <td class="row bg-light bd-callout bd-callout-warning">
+                  Globulin (GLOB)
+                </td>
+                <td class="row bg-light bd-callout bd-callout-warning">
+                  ALB to GLOB ratio (A/G)
+                </td>
+                <td class="row bg-light bd-callout bd-callout-warning">
+                  Total Bilirubim (TBIL)
+                </td>
+              </tr>
+              <tr valign="top">
+                <td class="bg-light bd-callout"><input name="RBC" class="form-control"></td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+                <td class="bg-light bd-callout">RBC Input field</td>
+              </tr>
+            </table>
           </div>
         </div>
       </div>
-    {% endif %}
 
-      <div class="form-row col-md-6 mb-3">
-        <label for="notes">Other Notes</label>
-        <textarea class="form-control" name="notes" id="notes" rows="2">{{cat.notes}}</textarea>
     </div>
-    <div class="form-row mb-3">
-      <input type="hidden" name="submission_type" value="user_defined">
-      <input type="submit" class="btn btn-secondary" role="button" value="Save Information">
-    </div>
-    <div class="alert alert-danger" style="display:none" id="validation_message">Nothing</div>
-
-    </form>
   </div>
-</div>
-
-
 </main>
+
+<script>
+function copy_sharable(e) {
+  /* Get the text field */
+  var copyText = document.getElementById("sharable_link").href;
+  var dummy = document.createElement("textarea");
+  // to avoid breaking orgain page when copying more words
+  // cant copy when adding below this code
+  // dummy.style.display = 'none'
+  document.body.appendChild(dummy);
+  //Be careful if you use texarea. setAttribute('value', value), which works with "input" does not work with "textarea". – Eduard
+  dummy.value = copyText;
+  dummy.select();
+  document.execCommand("copy");
+  document.body.removeChild(dummy);
+
+  /* Alert the copied text */
+  var link_button = document.getElementById('link_copy');
+  link_button.innerHTML = "Copied";
+  link_button.classList.add('btn-success');
+  link_button.classList.remove('btn-secondary');
+
+
+}
+
+$(document).on("click", '#sharable_link', function(event){
+       event.preventDefault();
+   });
+
+
+</script>
+<style type="text/css">
+
+  table {
+  	display: table;
+  }
+  table tr {
+  	display: table-cell;
+  }
+  table tr td {
+  	display: block;
+  }
+
+.bd-callout {
+    padding: 1.25rem;
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid #eee;
+    border-left-width: .25rem;
+    border-radius: .25rem
+}
+
+.bd-callout h4 {
+    margin-top: 0;
+    margin-bottom: .25rem
+}
+
+.bd-callout p:last-child {
+    margin-bottom: 0
+}
+
+.bd-callout code {
+    border-radius: .25rem
+}
+
+.bd-callout+.bd-callout {
+    margin-top: -.25rem
+}
+
+.bd-callout-info {
+    border-left-color: #5bc0de
+}
+
+.bd-callout-info h4 {
+    color: #5bc0de
+}
+
+.bd-callout-warning {
+    border-left-color: #f0ad4e
+}
+
+.bd-callout-warning h4 {
+    color: #f0ad4e
+}
+
+.bd-callout-danger {
+    border-left-color: #d9534f
+}
+
+.bd-callout-danger h4 {
+    color: #d9534f
+}
+</style>
+
 {% else %}
 <div class="alert alert-danger">You are unauthorized to view this record</div>
 {% endif %}

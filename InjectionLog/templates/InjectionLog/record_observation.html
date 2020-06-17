@@ -1,0 +1,144 @@
+{% extends 'InjectionLog/index.html' %}
+
+{% load groupfilter %}
+
+
+
+{% block maincontent %}
+
+
+<main role="main">
+
+<!--Behavior. Weight. Temperature. Notes. -->
+  <div class="container">
+    <h2>Observation Period Log</h2>
+    {% if error %}
+    <div class="alert alert-danger">Error: {{ error }}</div>
+    {% endif %}
+    <form class="needs-validation" novalidate action="/record_observation/" method="POST" id="ObservationLog">
+        {% csrf_token %}
+      <fieldset>
+        <div class="form-row col-md-6 mb-3">
+          <div class="form-row col-md-6 mb-3">
+            <label for="selectedcat">Selected Cat</label>
+            <select class="form-control" name="selectedcat" id="selectedcat">
+              {% for cat in validcats %}
+              <option {% if request.GET.selectedcat|add:"0" == cat.id %} selected {% endif %} value="{{cat.id}}">{{cat.name}}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="container">
+          <div class="form-text">Observtion Day</div>
+            <div class="for-row col-xsm-6 mb-3">
+              {% now 'h:i A' as my_time %}
+              <input name="observation_date" class="form-control" type="date" value="{% if request.GET.inj_date %}{{request.GET.inj_date}}{% else %}{% now 'Y-m-d' %}{% endif %}" max="{{now|max_time|date:'Y-m-d'}}" id="observation_date">
+            </div>
+            <hr class="my-3"/>
+            <div class="form-row">
+              <div id="dose_note" name="dose_note" class="form-text">
+                How did your cat do today?
+              </div>
+            </div>
+            <div class="container">
+              <div class="row">
+                <div class="col-1">
+                  <small class="form-text">
+                  I'm worried
+                  </small>
+                </div>
+                <div class="col-1"><p></div>
+                <div class="col-1"><p></div>
+                <div class="col-1"><p></div>
+                <div class="col-1">
+                  <small class="form-text">
+                  Acts cured!
+                  </small>
+                </div>
+                <div class="col-1"><p></div>
+              </div>
+              <div class="row">
+                <div class="col-1 form-check form-check-inline">
+                  <input class="form-check-input" {% if request.GET.cat_rating == "1" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio1" value="1" required>
+                  <label class="form-check-label" for="inlineRadio1">1</label>
+                </div>
+                <div class="col-1 form-check form-check-inline">
+                  <input class="form-check-input" {% if request.GET.cat_rating == "2" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio2" value="2" required>
+                  <label class="form-check-label" for="inlineRadio2">2</label>
+                </div>
+                <div class="col-1 form-check form-check-inline">
+                  <input class="form-check-input" {% if request.GET.cat_rating == "3" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio3" value="3" required>
+                  <label class="form-check-label" for="inlineRadio3">3</label>
+                </div>
+                <div class="col-1 form-check form-check-inline">
+                  <input class="form-check-input" {% if request.GET.cat_rating == "4" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio4" value="4" required>
+                  <label class="form-check-label" for="inlineRadio3">4</label>
+                </div>
+                <div class="col-1 form-check form-check-inline">
+                  <input class="form-check-input" {% if request.GET.cat_rating == "5" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio3" value="5" required>
+                  <label class="form-check-label" for="inlineRadio3">5</label>
+                  <span class="container invalid-feedback">
+                    Enter a qualitative measure
+                  </span>
+                </div>
+            </div>
+          </div>
+          <div class="form-row col-md-6 mb-3">
+            <label for="othernotes">Daily Observation Notes</label>
+            <textarea class="form-control" name="notes" id="notes" rows="2">{{request.GET.othernotes}}</textarea>
+            <small class="form-text text-muted">Anything else worth logging?</small>
+
+          </div>
+
+          <div class="alert alert-secondary">
+            <h5>Quantitative Observations (if available)</h5>
+            <div class="form-row col-md-6 mb-3">
+              <label for="inputWeight">Cat's Weight</label>
+              <div class="input-group mb-3">
+                <input class="form-control" type="number" step="0.1" name="CatWeight" value="{{ request.GET.CatWeight }}" class="form-control" id="inputWeight" >
+                <div class="form-group-append">
+                  <span id="wt"d>
+                    <select class="form-control" name="weight_units" id="weight_units">
+                      <option value="lb">lb</option>
+                      <option value="kg">kg</option>
+                    </select>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row col-md-6 mb-3">
+              <label for="temperature">Cat's Temperature</label>
+              <div class="input-group mb-3">
+                <input class="form-control" type="number" step="0.1" name="temperature" value="{{ request.GET.Temperature }}" class="form-control" id="temperature">
+                <div class="form-group-append">
+                  <span id="temp">
+                    <select class="form-control" name="temp_units" id="temp_units">
+                      <option value="F">&degF</option>
+                      <option value="C">&degC</option>
+                    </select>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row col-md-6 mb-3">
+            <input class="btn btn-danger" type="submit" value="Add to Log">
+          </div>
+          <div class="alert alert-danger" style="display:none" id="validation_message"></div>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+</main>
+
+<script>
+var today = new Date().toISOString();
+document.getElementById("injectiondate").setAttribute('min', today);
+</script>
+
+
+
+
+{% endblock %}

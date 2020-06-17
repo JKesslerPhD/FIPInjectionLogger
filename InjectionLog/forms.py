@@ -2,6 +2,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from .models import BloodWork
 
 class AddGS(forms.Form):
     GSBrand = forms.CharField(label="GS Brand Name", max_length=100)
@@ -25,3 +26,11 @@ class RegisterForm(UserCreationForm):
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError("Username has already been registered")
         return self.cleaned_data
+        
+class BloodWorkForm(forms.ModelForm):
+    
+    class Meta:
+        model = BloodWork
+        bloodwork_date = forms.DateField()
+        fields = ["bloodname", "cat_name", "bloodwork_date", "bloodwork", "notes"]
+        

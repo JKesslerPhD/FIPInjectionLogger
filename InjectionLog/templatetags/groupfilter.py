@@ -1,6 +1,7 @@
 from django import template
 from django.contrib.auth.models import Group 
 from datetime import datetime, timedelta
+import re
 
 register = template.Library()
 
@@ -30,6 +31,19 @@ def max_time(td):
     return datetime.now()+timedelta(hours=12)
 
 @register.filter
-def elapsed(td):
-    difference = datetime.now().date()-td
+def elapsed(td, extended=0):
+    difference = datetime.now().date()-(td+timedelta(days=extended))
     return difference.days
+
+@register.filter
+def parse_url(url):
+    pattern = "(.*uc\?id=.*)\&export=()"
+    try:
+        parsed = re.match(pattern, url).groups()[0]
+    except:
+        parsed = None
+    
+    return parsed
+    
+
+    

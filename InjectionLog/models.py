@@ -1,10 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
+from gdstorage.storage import GoogleDriveStorage
+
+
+gd_storage = GoogleDriveStorage()
 
 class WarriorAdmin(models.Model):
     warrior_admin = models.CharField(max_length=200)
-
+    
     
 class UserExtension(models.Model):
     user = models.OneToOneField(User, on_delete = models.CASCADE, null=True)
@@ -26,8 +30,9 @@ class Cats(models.Model):
     notes = models.TextField(null=True)
     extended_treatment = models.IntegerField(default=0, null=False)
     test_cat = models.BooleanField(default=False)
+    sharable = models.CharField(max_length=32, null=True)
     
-    
+
 
 class GSBrand(models.Model):
     brand = models.CharField(primary_key=True, max_length = 100)
@@ -63,10 +68,11 @@ class ObservationLog(models.Model):
     owner = models.ForeignKey(User, on_delete = models.PROTECT)
     date_added = models.DateField(default = date.today, editable=False)
     cat_name = models.ForeignKey(Cats, on_delete = models.PROTECT)
-    cat_weight = models.DecimalField(max_digits=4, decimal_places=2, null=False)
-    wt_units   = models.CharField(max_length=2, default='lb')
+    cat_weight = models.DecimalField(max_digits=4, decimal_places=2, null=True)
+    wt_units   = models.CharField(max_length=2, default='lb', null=True)
     observation_date = models.DateField(null=True)
-    temperature = models.DecimalField(max_digits=5, decimal_places=1, null=False)
+    temperature = models.DecimalField(max_digits=5, decimal_places=1, null=True)
+    temp_units  = models.CharField(max_length=1, default='F', null=True)
     cat_behavior_today = models.IntegerField(default=3, null=False)
     notes = models.TextField(null=True)
     active = models.BooleanField(default=True)
@@ -75,5 +81,40 @@ class RelapseDate(models.Model):
     cat_name = models.ForeignKey(Cats, on_delete = models.PROTECT)
     relapse_start = models.DateField(null=True)
     active = models.BooleanField(default=True)
+    ocular = models.BooleanField(default=False)
+    neuro  = models.BooleanField(default=False)
+    notes = models.TextField(null=True)
+
+        
+class BloodWork(models.Model):
+    bloodname = models.CharField(max_length=200)
+    cat_name = models.ForeignKey(Cats, on_delete = models.CASCADE, null=True)
+    bloodwork_date = models.DateField(default = date.today)
+    url_link = models.CharField(max_length=500, null=True, blank=True)
+    bloodwork = models.FileField(upload_to = 'FIPlog/', storage=gd_storage, null=True) 
+    notes = models.TextField(null=True, blank=True)   
+    active = models.BooleanField(default=True)
     
+
+class WarriorTracker(models.Model):
+    user = models.ForeignKey(User, on_delete = models.CASCADE)
+    md5hash = models.CharField(max_length=32, null=True)
+    identifier = models.CharField(max_length=200, null=True)
+
+class BloodSummary(models.Model):
+    cat_name = models.ForeignKey(Cats, on_delete = models.CASCADE, null=False)
+    bt_date  = models.DateField(default = date.today)
+    rbc = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    hct = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    hgb = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    wbc = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    pct_lym = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    pct_neu = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    lym = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    neu = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    tp = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    alb = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    glob = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    a_g = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+    tbil = models.DecimalField(null=True, max_digits=4, decimal_places=2)
     

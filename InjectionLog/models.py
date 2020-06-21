@@ -80,6 +80,7 @@ class ObservationLog(models.Model):
 class RelapseDate(models.Model):
     cat_name = models.ForeignKey(Cats, on_delete = models.PROTECT)
     relapse_start = models.DateField(null=True)
+    fip_type = models.CharField(max_length=32)
     active = models.BooleanField(default=True)
     ocular = models.BooleanField(default=False)
     neuro  = models.BooleanField(default=False)

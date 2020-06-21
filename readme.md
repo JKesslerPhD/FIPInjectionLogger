@@ -19,6 +19,8 @@ To setup the database, use the standard Django protocol:
 
 `python manage.py migrate`
 
+Note: a superuser needs to be created for the django database.  a `WarriorAdmin` group also needs to be created
+
 Run the server:
 
 `python manage.py runserver`

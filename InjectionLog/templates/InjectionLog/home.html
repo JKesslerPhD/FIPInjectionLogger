@@ -88,6 +88,9 @@
         Member of Group: {{grouping}}
       </div>
       {% endif %}
+      <div class="alert alert-primary">
+        Please update your <a href="/catinfo/?CatID={{sc.cat_name.id}}">cat's information</a> if a relapse occurs
+      </div>
       <div class="card-deck">
         <div class="row">
         {% if treatment_duration >= 84|add:sc.cat_name.extended_treatment %}

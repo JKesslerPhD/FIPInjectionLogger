@@ -149,7 +149,14 @@ def catinfo(request):
                 c.treatment_start = request.POST["treatmentstart"]
             
             if  "relapse_date" in request.POST and re.match(pattern,request.POST["relapse_date"]):
-                relapse = RelapseDate(cat_name = c,  relapse_start = request.POST["relapse_date"])
+                relapse = RelapseDate(
+                    cat_name = c,  
+                    relapse_start = request.POST["relapse_date"],
+                    fip_type = request.POST["FIPTypeRelapse"],
+                    ocular = "Ocular_Relapse" in request.POST,
+                    neuro = "Neuro_Relapse" in request.POST,
+                )
+                
                 relapse.save()
             
             if "extendedtreatment" in request.POST:

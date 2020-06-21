@@ -26,11 +26,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# CSRF_COOKIE_SECURE = True
-# SECURE_SSL_REDIRECT = True
-# SESSION_COOKIE_SECURE = True
+#CSRF_COOKIE_SECURE = True
+#SECURE_SSL_REDIRECT = True
+#SESSION_COOKIE_SECURE = True
 
-GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = 'SlayFIP/southern-surge-278721-bdb28525ed1e.json'
+GOOGLE_DRIVE_STORAGE_JSON_KEY_FILE = 'SlayFIP/gdrive_credentials.json'
 GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = 'FIPlog' # OPTIONAL
 
 ALLOWED_HOSTS = ['fiplog.com','localhost']

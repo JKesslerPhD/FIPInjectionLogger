@@ -95,7 +95,7 @@
           </div>
 
 
-          {% if cat.treatment_start|elapsed|add:0 >= 50 %}
+          {% if cat.treatment_start|elapsed|add:0 >= 14 %}
           <div class="form-row col-sm-6 mb-3">
             <label for="extendedtreatment">Additional Days for Extended Treatment</label>
             <div class="input-group col-sm-6">
@@ -112,25 +112,70 @@
             <input name="warrioradmin" class="form-control" value="{{cat.WarriorAdmin}}" id="warrioradmin">
           </div>
 
-          {% if cat.treatment_start|elapsed|add:0 >= 50 %}
+          {% if cat.treatment_start|elapsed|add:0 >= 14 %}
           <div class="form-row col-md-6 mb-3">
             <div class="custom-control custom-switch">
-              <input name="relapse" {% if cat.relapse %} checked {% endif %} type="checkbox" class="custom-control-input" id="relapse" {% if relapse %} disabled {% endif %} onchange="relapse_trigger();">
+              <input name="relapse" {% if relapse %} checked {% endif %} type="checkbox" class="custom-control-input" id="relapse" {% if relapse %} disabled {% endif %} onchange="relapse_trigger();">
               <label class="custom-control-label" for="relapse">Cat Has Relapsed</label>
             </div>
-            <div class="container" id="relapse_fields" {% if cat.relapse %} style="display:block;" {% else %} style="display:none" {% endif %}>
+            <div class="container" id="relapse_fields" {% if relapse %} style="display:block;" {% else %} style="display:none" {% endif %}>
               <div class="alert alert-danger">
               {% for date in relapse %}
                 <div class="form-row mb-3">
                   <label for="relapse_date_{{forloop.counter}}">Relapse Start Date</label>
                   <input name="relapse_date_{{forloop.counter}}" class="form-control" max="{{now|max_time|date:'Y-m-d'}}" type="date" value="{{date.relapse_start|date:'Y-m-d'}}" {% if date.relapse_start %} disabled {% endif %} id="relapse_date_{{forloop.counter}}">
                 </div>
+                <div class="input-group mb-3">
+                  <div class="col-5">
+                    <select required name="FIPTypeRelapse_{{forloop.counter}}" class="form-control"  disabled >
+                      <option value="">Select FIP-Type</option>
+                      <option value="wet" {% if date.fip_type == "wet" %} Selected {% endif %}>Wet FIP</option>
+                      <option value="dry" {% if date.fip_type == "dry" %} Selected {% endif %}>Dry FIP</option>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <input  disabled class="form-check-input" type="checkbox" {% if date.ocular %} checked {% endif %} value="" id="Ocular_Relapse_{{forloop.counter}}" name="Ocular_Relapse_{{forloop.counter}}">
+                    <label class="form-check-label" for="Ocular_Relapse_{{forloop.counter}}">
+                      Ocular Involvement
+                    </label>
+                  </div>
+                  <div class="col">
+                    <input disabled class="form-check-input" type="checkbox" {% if date.neuro %} checked {% endif %} id="Neuro_Relapse_{{forloop.counter}}" name="Neuro_Relapse_{{forloop.counter}}">
+                    <label class="form-check-label" for="Neuro_Relapse_{{forloop.counter}}">
+                      Neuro Symptoms
+                    </label>
+                  </div>
+                </div>
               {% endfor %}
-              <div class="form-row mb-3">
-                <label for="relapse_date">New Relapse Start Date</label>
-                <input name="relapse_date" class="form-control" type="date"  max="{{now|max_time|date:'Y-m-d'}}" value="" id="relapse_date">
-                <small class="form-text">Please record every new instance of relapse.  This will impact your treatment countdown.</small>
-              </div>
+                <div class="form-row mb-3">
+                  <label for="relapse_date">New Relapse Start Date</label>
+                  <input name="relapse_date" class="form-control" type="date"  max="{{now|max_time|date:'Y-m-d'}}" value="" id="relapse_date">
+                </div>
+                <div class="input-group mb-3">
+                  <div class="col-5">
+                    <select required name="FIPTypeRelapse" class="form-control">
+                      <option value="">Select FIP-Type</option>
+                      <option value="wet" {% if cat.fip_type == "wet" %} Selected {% endif %}>Wet FIP</option>
+                      <option value="dry" {% if cat.fip_type == "dry" %} Selected {% endif %}>Dry FIP</option>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <input class="form-check-input" type="checkbox" value="" id="Ocular_Relapse" name="Ocular_Relapse">
+                    <label class="form-check-label" for="Ocular_Relapse">
+                      Ocular Involvement
+                    </label>
+                  </div>
+                  <div class="col">
+                    <input class="form-check-input" type="checkbox" {% if date.neuro %} checked {% endif %} id="Neuro_Relapse" name="Neuro_Relapse">
+                    <label class="form-check-label" for="Neuro_Relapse">
+                      Neuro Symptoms
+                    </label>
+                  </div>
+
+                </div>
+                <div>
+                  <small class="form-text">Please record every new instance of relapse.  This will impact your treatment countdown.</small>
+                </div>
               </div>
             </div>
           </div>

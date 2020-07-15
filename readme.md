@@ -1,4 +1,4 @@
-# The FIP Injection Log sqlite3
+# The FIP Injection Log
 
 Coded to support Python3
 

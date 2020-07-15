@@ -1,4 +1,4 @@
-# The FIP Injection Log sqlite3
+# The FIP Injection Log
 
 Coded to support Python3
 
@@ -19,8 +19,10 @@ To setup the database, use the standard Django protocol:
 
 `python manage.py migrate`
 
-Note: a superuser needs to be created for the django database.  a `WarriorAdmin` group also needs to be created
+Note: a superuser needs to be created for the django database.  A ``WarriorAdmin`user group also needs to be created in the database before you can run the program.  
 
 Run the server:
 
 `python manage.py runserver`
+
+Create the `WarriorAdmin` user group by using the Django admin interface (`/admin`).

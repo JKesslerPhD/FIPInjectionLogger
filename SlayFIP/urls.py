@@ -17,13 +17,20 @@ from django.contrib import admin
 from django.urls import path
 from InjectionLog import views
 from django.contrib.auth import views as auth_views
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('log/', views.injectionlog),
     path('', views.main_site),
+    re_path('(.*?)service-worker.js', (TemplateView.as_view(
+    template_name="InjectionLog/service-worker.js",
+    content_type='application/javascript',
+)), name='service-worker.js'),
+
+
     path('information/',views.information),
     path('calculate/',views.calculatedosage),
     path('inject/',views.recordinjection),

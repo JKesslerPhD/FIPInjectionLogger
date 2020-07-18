@@ -58,6 +58,7 @@ class InjectionLog(models.Model):
     injection_notes = models.TextField(null=True)
     gaba_dose = models.IntegerField(null=True)
     other_notes = models.TextField(null=True)
+    new_symptom = models.TextField(null=True)
     active = models.BooleanField(default=True)
 
 class SelectedCat(models.Model):

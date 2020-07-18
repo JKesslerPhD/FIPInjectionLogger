@@ -52,7 +52,7 @@
       <div class="form-group">
         <label for="CatName">Cat Name</label>
         <div class="input-group mb-3">
-          <input class="form-control" required name="CatName" value="{{cat.name}}" id="CatName" {% if cat.id %} disabled {% endif %}>
+          <input {% if request.GET.sharable %} disabled {% endif %}  class="form-control" required name="CatName" value="{{cat.name}}" id="CatName" {% if cat.id %} disabled {% endif %}>
         </div>
       </div>
       <div class="form-group">
@@ -66,7 +66,7 @@
             </select>
           </div>
           <div class="col">
-            <input {% if cat.id %} disabled {% endif %} class="form-check-input" type="checkbox" {% if cat.ocular %} checked {% endif %} value="" id="Ocular" name="Ocular">
+            <input {% if request.GET.sharable %} disabled {% endif %}  {% if cat.id %} disabled {% endif %} class="form-check-input" type="checkbox" {% if cat.ocular %} checked {% endif %} value="" id="Ocular" name="Ocular">
             <label class="form-check-label" for="Ocular">
               Ocular Involvement
             </label>
@@ -81,7 +81,7 @@
         <div class="form-group">
           <label for="CatBirthday">Birthday</label>
           <div class="input-group mb-3 col-xsm-1">
-             <input {% if cat.id %} disabled {% endif %} type="date" max="{{now|max_time|date:'Y-m-d'}}" required class="form-control" value="{{cat.birthday|date:'Y-m-d'}}" name="CatBirthday" id="CatBirthday" />
+             <input {% if request.GET.sharable %} disabled {% endif %}  {% if cat.id %} disabled {% endif %} type="date" max="{{now|max_time|date:'Y-m-d'}}" required class="form-control" value="{{cat.birthday|date:'Y-m-d'}}" name="CatBirthday" id="CatBirthday" />
           </div>
         </div>
 
@@ -91,7 +91,7 @@
           <h4>Treatment Information</h4>
           <div class="form-row mb-3">
             <label for="treatmentstart">Treatment Start Date</label>
-            <input name="treatmentstart" class="form-control" type="date" max="{{now|max_time|date:'Y-m-d'}}" value="{{cat.treatment_start|date:'Y-m-d'}}" {% if cat.treatment_start %} disabled {% endif %} id="treatmentstart">
+            <input {% if request.GET.sharable %} disabled {% endif %}  name="treatmentstart" class="form-control" type="date" max="{{now|max_time|date:'Y-m-d'}}" value="{{cat.treatment_start|date:'Y-m-d'}}" {% if cat.treatment_start %} disabled {% endif %} id="treatmentstart">
           </div>
 
 
@@ -99,7 +99,7 @@
           <div class="form-row col-sm-6 mb-3">
             <label for="extendedtreatment">Additional Days for Extended Treatment</label>
             <div class="input-group col-sm-6">
-              <input name="extendedtreatment" class="form-control" type="number" value="{{cat.extended_treatment}}" id="extendedtreatment" {% if relapse %} disabled {% endif %}>
+              <input {% if request.GET.sharable %} disabled {% endif %}  name="extendedtreatment" class="form-control" type="number" value="{{cat.extended_treatment}}" id="extendedtreatment" {% if relapse %} disabled {% endif %}>
             </div>
             <div class="form-group-append">
               <span class="input-group-text">days</span>
@@ -109,13 +109,13 @@
 
           <div class="form-row mb-3">
           <label for="warrioradmin">Warrior Admin</label>
-            <input name="warrioradmin" class="form-control" value="{{cat.WarriorAdmin}}" id="warrioradmin">
+            <input {% if request.GET.sharable %} disabled {% endif %}  name="warrioradmin" class="form-control" value="{{cat.WarriorAdmin}}" id="warrioradmin">
           </div>
 
           {% if cat.treatment_start|elapsed|add:0 >= 14 %}
           <div class="form-row col-md-6 mb-3">
             <div class="custom-control custom-switch">
-              <input name="relapse" {% if relapse %} checked {% endif %} type="checkbox" class="custom-control-input" id="relapse" {% if relapse %} disabled {% endif %} onchange="relapse_trigger();">
+              <input {% if request.GET.sharable %} disabled {% endif %}  name="relapse" {% if relapse %} checked {% endif %} type="checkbox" class="custom-control-input" id="relapse" {% if relapse %} disabled {% endif %} onchange="relapse_trigger();">
               <label class="custom-control-label" for="relapse">Cat Has Relapsed</label>
             </div>
             <div class="container" id="relapse_fields" {% if relapse %} style="display:block;" {% else %} style="display:none" {% endif %}>
@@ -123,7 +123,7 @@
               {% for date in relapse %}
                 <div class="form-row mb-3">
                   <label for="relapse_date_{{forloop.counter}}">Relapse Start Date</label>
-                  <input name="relapse_date_{{forloop.counter}}" class="form-control" max="{{now|max_time|date:'Y-m-d'}}" type="date" value="{{date.relapse_start|date:'Y-m-d'}}" {% if date.relapse_start %} disabled {% endif %} id="relapse_date_{{forloop.counter}}">
+                  <input {% if request.GET.sharable %} disabled {% endif %}  name="relapse_date_{{forloop.counter}}" class="form-control" max="{{now|max_time|date:'Y-m-d'}}" type="date" value="{{date.relapse_start|date:'Y-m-d'}}" {% if date.relapse_start %} disabled {% endif %} id="relapse_date_{{forloop.counter}}">
                 </div>
                 <div class="input-group mb-3">
                   <div class="col-5">
@@ -134,13 +134,13 @@
                     </select>
                   </div>
                   <div class="col">
-                    <input  disabled class="form-check-input" type="checkbox" {% if date.ocular %} checked {% endif %} value="" id="Ocular_Relapse_{{forloop.counter}}" name="Ocular_Relapse_{{forloop.counter}}">
+                    <input {% if request.GET.sharable %} disabled {% endif %}   disabled class="form-check-input" type="checkbox" {% if date.ocular %} checked {% endif %} value="" id="Ocular_Relapse_{{forloop.counter}}" name="Ocular_Relapse_{{forloop.counter}}">
                     <label class="form-check-label" for="Ocular_Relapse_{{forloop.counter}}">
                       Ocular Involvement
                     </label>
                   </div>
                   <div class="col">
-                    <input disabled class="form-check-input" type="checkbox" {% if date.neuro %} checked {% endif %} id="Neuro_Relapse_{{forloop.counter}}" name="Neuro_Relapse_{{forloop.counter}}">
+                    <input {% if request.GET.sharable %} disabled {% endif %}  disabled class="form-check-input" type="checkbox" {% if date.neuro %} checked {% endif %} id="Neuro_Relapse_{{forloop.counter}}" name="Neuro_Relapse_{{forloop.counter}}">
                     <label class="form-check-label" for="Neuro_Relapse_{{forloop.counter}}">
                       Neuro Symptoms
                     </label>
@@ -149,7 +149,7 @@
               {% endfor %}
                 <div class="form-row mb-3">
                   <label for="relapse_date">New Relapse Start Date</label>
-                  <input name="relapse_date" class="form-control" type="date"  max="{{now|max_time|date:'Y-m-d'}}" value="" id="relapse_date">
+                  <input {% if request.GET.sharable %} disabled {% endif %}  name="relapse_date" class="form-control" type="date"  max="{{now|max_time|date:'Y-m-d'}}" value="" id="relapse_date">
                 </div>
                 <div class="input-group mb-3">
                   <div class="col-5">
@@ -160,13 +160,13 @@
                     </select>
                   </div>
                   <div class="col">
-                    <input class="form-check-input" type="checkbox" value="" id="Ocular_Relapse" name="Ocular_Relapse">
+                    <input {% if request.GET.sharable %} disabled {% endif %}  class="form-check-input" type="checkbox" value="" id="Ocular_Relapse" name="Ocular_Relapse">
                     <label class="form-check-label" for="Ocular_Relapse">
                       Ocular Involvement
                     </label>
                   </div>
                   <div class="col">
-                    <input class="form-check-input" type="checkbox" {% if date.neuro %} checked {% endif %} id="Neuro_Relapse" name="Neuro_Relapse">
+                    <input {% if request.GET.sharable %} disabled {% endif %}  class="form-check-input" type="checkbox" {% if date.neuro %} checked {% endif %} id="Neuro_Relapse" name="Neuro_Relapse">
                     <label class="form-check-label" for="Neuro_Relapse">
                       Neuro Symptoms
                     </label>
@@ -183,7 +183,7 @@
 
             <div class="form-row col-md-6 mb-3">
               <label for="notes">Other Notes</label>
-              <textarea class="form-control" name="notes" id="notes" rows="2">{{cat.notes}}</textarea>
+              <textarea {% if request.GET.sharable %} disabled {% endif %}  class="form-control" name="notes" id="notes" rows="2">{{cat.notes}}</textarea>
             </div>
           </div>
           <hr>
@@ -278,7 +278,7 @@
                              <div class="col-md-6 mb-3">
                                <div class="form-group">
                                  <label for="id_bloodwork_date" class="control-label">Bloodwork Date</label>
-                                 <input type="date" max="{{now|max_time|date:'Y-m-d'}}" class="form-control" name="bloodwork_date" value="{{now|max_time|date:'Y-m-d'}}" id="id_bloodwork_date">
+                                 <input {% if request.GET.sharable %} disabled {% endif %}  type="date" max="{{now|max_time|date:'Y-m-d'}}" class="form-control" name="bloodwork_date" value="{{now|max_time|date:'Y-m-d'}}" id="id_bloodwork_date">
 
                                </div>
                              </div>
@@ -287,7 +287,7 @@
                              <div class="col-md-6 mb-3">
                                <div class="form-group">
                                  <label for="id_notes" class="control-label">Additional Notes/Comments</label>
-                                 <textarea type="date"  max="{{now|max_time|date:'Y-m-d'}}" class="form-control" name="notes" id="id_notes"></textarea>
+                                 <textarea {% if request.GET.sharable %} disabled {% endif %}  type="date"  max="{{now|max_time|date:'Y-m-d'}}" class="form-control" name="notes" id="id_notes"></textarea>
 
                                </div>
                              </div>

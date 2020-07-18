@@ -52,7 +52,7 @@
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
           <a class="dropdown-item" href="/make_test/">Mark as Test Account</a>
-          <a class="dropdown-item" href="/logout/">Logout</a>
+          <a class="dropdown-item" href="/logout/">Logout '{{request.user}}'</a>
           <a class="dropdown-item" href="accounts/password_change">Change Password</a>
         </div>
       </li>
@@ -66,6 +66,15 @@
   New data successfully added!
 </div>
 {% endif %}
+
+{% if request.GET.ns == "True" %}
+<div class="alert alert-danger">
+  <p>You have logged a new symptom for your cat.
+  <p>It is important to <a target="_blank" href="https://facebook.com">message your warrior admin</a> ASAP.
+</div>
+{% endif %}
+
+
 {% if request.GET.message == "update" %}
 <div class="alert alert-warning">
   Record has been updated

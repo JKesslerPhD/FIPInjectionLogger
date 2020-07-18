@@ -43,7 +43,7 @@
         <label for="Dose">GS Dose</label>
         <div class="input-group mb-3">
 
-            <input required class="form-control" value="{{ request.GET.GSDose }}" type="number" name="GSDose" class="form-control" id="GSDose" aria-describedby="dose_note" onchange="get_dosage()">
+            <input required class="form-control" value="{{ request.GET.GSDose }}" type="number" name="GSDose" class="form-control" id="GSDose" max="50" aria-describedby="dose_note" onchange="get_dosage()">
 
             <div class="form-group-append">
               <span class="input-group-text">mg/kg</span>
@@ -121,7 +121,7 @@
               {% now 'h:i A' as my_time %}
               <input name="inj_date" class="form-control" type="datetime-local" value="{% if request.GET.inj_date %}{{request.GET.inj_date}}{% else %}{% now 'Y-m-d\TH:i' %}{% endif %}" max="{{now|max_time|date:'Y-m-d\TH:i'}}" id="injectiondate">
             </div>
-            <hr class="my-3"/>
+            <hr class="my-3">
             <div class="form-row">
               <div id="dose_note" name="dose_note" class="form-text">
                 How did your cat do today?
@@ -170,34 +170,53 @@
                 </div>
             </div>
           </div>
-          <hr class="my-3"/>
+          <hr class="my-3">
+
           <div class="form-row col-md-6 mb-3">
             <div class="custom-control custom-switch">
-              <input name="using_gaba" type="checkbox" {% if request.GET.using_gaba %} checked {% endif %} class="custom-control-input" id="using_gaba" onchange="gaba_trigger()">
-              <label class="custom-control-label" for="using_gaba">using gabapentin</label>
+              <input name="new_symptom" type="checkbox" class="custom-control-input" id="new_symptom" onchange="symptom_trigger()">
+              <label class="custom-control-label" for="new_symptom">Any new symptoms?</label>
             </div>
           </div>
-          <div class="form-row col-md-6 mb-3" id="gaba_volume" {% if not request.GET.using_gaba %} style="display:none" {% endif %}>
-            <div id="gaba_dose_note" class="form-text">
-              How much gabapentin did you feed to your cat?
+          <div class="form-row col-md-6 mb-3" id="symptom_info" style="display:none">
+            <div id="symptom_note" class="form-text">
+              Describe the new symptoms:
             </div>
             <div class="input-group mb-3">
-                <input type="number" name="gabadose" value="{% if request.GET.gabadose %}{{request.GET.gabadose}}{% else %}0{% endif %}" class="form-control" id="gabavol">
-                <div class="form-group-append">
-                  <span id="gaba_units" class="input-group-text">mg</span>
-                </div>
+                <textarea name="symptom_details" class="form-control" id="symtpom_details"></textarea>
             </div>
 
-        <small class="form-text text-muted">Used amounts often fall between 40 mg to 200 mg</small>
+        <small class="form-text text-muted">Discuss these new symptoms with your warrior admin</small>
       </div>
-      <hr class="my-3"/>
+      <hr class="my-3">
+
+      <div class="form-row col-md-6 mb-3">
+        <div class="custom-control custom-switch">
+          <input name="using_gaba" type="checkbox" {% if request.GET.using_gaba %} checked {% endif %} class="custom-control-input" id="using_gaba" onchange="gaba_trigger()">
+          <label class="custom-control-label" for="using_gaba">using gabapentin</label>
+        </div>
+      </div>
+      <div class="form-row col-md-6 mb-3" id="gaba_volume" {% if not request.GET.using_gaba %} style="display:none" {% endif %}>
+        <div id="gaba_dose_note" class="form-text">
+          How much gabapentin did you feed to your cat?
+        </div>
+        <div class="input-group mb-3">
+            <input type="number" name="gabadose" value="{% if request.GET.gabadose %}{{request.GET.gabadose}}{% else %}0{% endif %}" class="form-control" id="gabavol">
+            <div class="form-group-append">
+              <span id="gaba_units" class="input-group-text">mg</span>
+            </div>
+        </div>
+
+    <small class="form-text text-muted">Used amounts often fall between 40 mg to 200 mg</small>
+  </div>
+      <hr class="my-3">
       <div class="form-row col-md-6 mb-3">
         <label for="injectionnotes">Injection Notes</label>
         <textarea class="form-control" name="injectionnotes" id="injectionnotes" rows="2">{{request.GET.injectionnotes}}</textarea>
         <small class="form-text text-muted">What side? How'd it go?</small>
 
       </div>
-      <hr class="my-3"/>
+      <hr class="my-3">
       <div class="form-row col-md-6 mb-3">
         <label for="othernotes">Other Notes</label>
         <textarea class="form-control" name="othernotes" id="othernotes" rows="2">{{request.GET.othernotes}}</textarea>
@@ -206,7 +225,7 @@
       </div>
 
       <div class="form-row col-md-6 mb-3">
-        <input class="btn btn-danger" type="submit" value="Add to Log">
+        <input class="btn btn-danger" type="submit" onclick="get_dosage()" value="Add to Log">
       </div>
       <div class="alert alert-danger" style="display:none" id="validation_message">
       </div>

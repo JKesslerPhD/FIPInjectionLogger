@@ -51,11 +51,26 @@ function gaba_trigger()
   var check = theForm.elements["using_gaba"];
   if(check.checked == true)
   {
-    document.getElementById("gaba_volume").style.display = "block"
+    document.getElementById("gaba_volume").style.display = "block";
 
   }
   else {
-    document.getElementById("gaba_volume").style.display = "none"
+    document.getElementById("gaba_volume").style.display = "none";
+  }
+
+}
+
+function symptom_trigger()
+{
+  var theForm = document.forms["GS Calculator"];
+  var check = theForm.elements["new_symptom"];
+  if(check.checked == true)
+  {
+    document.getElementById("symptom_info").style.display = "block";
+
+  }
+  else {
+    document.getElementById("symptom_info").style.display = "none";
   }
 
 }

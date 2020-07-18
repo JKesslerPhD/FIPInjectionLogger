@@ -28,6 +28,14 @@ import decimal
 
 def selected_cat(request):
 
+    if "sharable" in request.GET:
+        try:
+            cats = Cats.objects.filter(sharable=request.GET["sharable"])
+            cats[0]
+            return cats[0]
+        except:
+            return False
+        
     if "selectedcat" not in request.GET:
         try:
             sc = SelectedCat.objects.filter(user=request.user)[0]
@@ -385,7 +393,7 @@ def recordinjection(request):
         request.GET["brand_value"] = latest_data.gs_brand_id
         if latest_data.wt_units == "kg":
             request.GET["weight_units"]=True
-            dose = round(conc*latest_data.injection_amount/latest_data.cat_weight*100,0)/100
+            dose = int(round(conc*latest_data.injection_amount/latest_data.cat_weight,0))
 
         request.GET["GSDose"] = dose
     except:
@@ -403,10 +411,18 @@ def recordinjection(request):
         amount = request.POST["calculateddose"]
         i_note = request.POST["injectionnotes"]
         o_note = request.POST["othernotes"]
+        if "new_symptom" in request.POST:
+            newsymptom = request.POST["symptom_details"]
+            if newsymptom!="":
+                ns = True
+        else:
+            newsymptom = ""
+            ns = False
+        
         if "gabadose" in request.POST:
             gabadose = request.POST["gabadose"]
         else:
-            gabadose=None
+            gabadose = None
 
         unit = "lb"
         if "weight_units" in request.POST:
@@ -429,6 +445,7 @@ def recordinjection(request):
                 cat_behavior_today = rating,
                 injection_notes = i_note,
                 gaba_dose = gabadose,
+                new_symptom=newsymptom,
                 other_notes = o_note,
                 wt_units = unit)
         log.save()
@@ -437,7 +454,7 @@ def recordinjection(request):
             cat.treatment_start = i_date[:10]
             cat.save()
 
-        return redirect("/?message=success&weight=%s&unit=%s" % (weight,unit))
+        return redirect("/?message=success&weight=%s&unit=%s&ns=%s" % (weight,unit,ns))
 
 
     return render(request, template, {"page":page, "dose":True,"drugs":drugs,"userGS":userGS, "validcats":validcats})
@@ -452,13 +469,22 @@ def injectionlog(request):
 
     template ='InjectionLog/injlog.html'
     page="log"
-
-    injections = InjectionLog.objects.filter(
-        owner=request.user).filter(
-        cat_name=cat).filter(
-        active=True).annotate(
-        inj_date = ExpressionWrapper(Cast(F('injection_time'), DateField())-F('cat_name__treatment_start'),output_field=DurationField())).order_by('injection_time')
-    return render(request, template, {"page":page,"injections":injections,"validcats":validcats, "cat":cat})
+    
+    if "sharable" not in request.GET:
+        sharable = False
+        injections = InjectionLog.objects.filter(
+            owner=request.user).filter(
+            cat_name=cat).filter(
+            active=True).annotate(
+            inj_date = ExpressionWrapper(Cast(F('injection_time'), DateField())-F('cat_name__treatment_start'),output_field=DurationField())).order_by('injection_time')
+    else:
+        sharable = True
+        injections = InjectionLog.objects.filter(
+            cat_name=cat).filter(
+            active=True).annotate(
+            inj_date = ExpressionWrapper(Cast(F('injection_time'), DateField())-F('cat_name__treatment_start'),output_field=DurationField())).order_by('injection_time')
+        
+    return render(request, template, {"page":page,"injections":injections,"validcats":validcats, "cat":cat, "sharable":sharable})
 
 @login_required
 def observation_log(request):

@@ -5,11 +5,11 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="HandheldFriendly" content="true">
-  <link rel="apple-touch-icon" sizes="76x76" href={% static "favicon/apple-touch-icon.png" %}>
-  <link rel="icon" type="image/png" sizes="32x32" href={% static "favicon/favicon-32x32.png" %}>
-  <link rel="icon" type="image/png" sizes="16x16" href={% static "favicon/favicon-16x16.png" %}>
-  <link rel="manifest" href={% static "favicon/site.webmanifest" %}>
-  <link rel="mask-icon" href={% static "favicon/safari-pinned-tab.svg" %} color="#5bbad5">
+  <link rel="apple-touch-icon" sizes="76x76" href="{% static "favicon/apple-touch-icon.png" %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static "favicon/favicon-32x32.png" %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static "favicon/favicon-16x16.png" %}">
+  <link rel="manifest" href="{% static "favicon/site.webmanifest" %}">
+  <link rel="mask-icon" href="{% static "favicon/safari-pinned-tab.svg" %}" color="#5bbad5">
   <meta name="msapplication-TileColor" content="#da532c">
   <meta name="theme-color" content="#ffffff">
   <title>FIP Injection Log</title>
@@ -29,8 +29,19 @@
     {# Display django.contrib.messages as Bootstrap alerts #}
     {% bootstrap_messages %}
 
-
     <script src="{% static "InjectionLog/dosecalc.js" %}"></script>
+    <script>
+     if ('serviceWorker' in navigator) {
+        console.log("Will the service worker register?");
+        navigator.serviceWorker.register('service-worker.js')
+          .then(function(reg){
+            console.log("Yes, it did.");
+         }).catch(function(err) {
+            console.log("No it didn't. This happened:", err)
+        });
+     }
+    </script>
+
 
 
   </head>
@@ -41,9 +52,16 @@
   <footer class="container">
     <hr>
     <p>&copy; FIPLog 2020</p>
+    <div>
     {% if page == "home" or page == "information" %}
-    <small class="text-muted"><a href="https://icons8.com/icon/121371/cat">All Cat icons by Icons8</a></small>
-    {% endif %}
+      <div class="col-md">
+        <small class="text-muted"><a href="https://icons8.com/icon/121371/cat">All Cat icons by Icons8</a></small>
+      </div>
+        {% endif %}
+      <div class="col-md-2">
+        <small class="text-muted"><a href="https://github.com/JKesslerPhD/FIPInjectionLogger/issues">Submit a bug</a></small>
+      </div>
+    </div>
   </footer>
   </body>
 </html>

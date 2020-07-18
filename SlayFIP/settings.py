@@ -33,6 +33,8 @@ GOOGLE_DRIVE_STORAGE_MEDIA_ROOT = 'FIPlog' # OPTIONAL
 
 ALLOWED_HOSTS = ['fiplog.com','localhost']
 
+
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
@@ -69,7 +71,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'InjectionLog.apps.InjectionlogConfig'
+    'InjectionLog.apps.InjectionlogConfig',
 ]
 
 MIDDLEWARE = [
@@ -153,4 +155,6 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 LOGIN_REDIRECT_URL = "/"
+
+
 #LOGIN_URL="/login/"

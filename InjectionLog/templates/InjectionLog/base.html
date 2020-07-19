@@ -12,6 +12,8 @@
   <link rel="mask-icon" href="{% static "favicon/safari-pinned-tab.svg" %}" color="#5bbad5">
   <meta name="msapplication-TileColor" content="#da532c">
   <meta name="theme-color" content="#ffffff">
+  <meta property="og:title" content="FIP Injection Log">
+  <meta property="og:image" content="/static/favicon/icon_white.png">
   <title>FIP Injection Log</title>
     {# Load the tag library #}
     {% load bootstrap4 %}
@@ -51,17 +53,11 @@
   {% endblock %}
   <footer class="container">
     <hr>
-    <p>&copy; FIPLog 2020</p>
-    <div>
+    <p>&copy; FIPLog 2020
+    <p><small class="text-muted">This software is currently in development &mdash; additional functionality may suddenly appear (<a href="https://github.com/JKesslerPhD/FIPInjectionLogger/issues">submit a bug</a>).</small>
     {% if page == "home" or page == "information" %}
-      <div class="col-md">
-        <small class="text-muted"><a href="https://icons8.com/icon/121371/cat">All Cat icons by Icons8</a></small>
-      </div>
+    <p><small class="text-muted"><a href="https://icons8.com/icon/121371/cat">All Cat icons by Icons8</a></small>
         {% endif %}
-      <div class="col-md-2">
-        <small class="text-muted"><a href="https://github.com/JKesslerPhD/FIPInjectionLogger/issues">Submit a bug</a></small>
-      </div>
-    </div>
   </footer>
   </body>
 </html>

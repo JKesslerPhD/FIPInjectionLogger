@@ -21,8 +21,17 @@ from django.http import HttpResponse
 from django.core.files.base import File
 from gdstorage.storage import GoogleDriveStorage
 import hashlib
-
+import csv
 import decimal
+from django.http import StreamingHttpResponse
+
+class Echo:
+    """An object that implements just the write method of the file-like
+    interface.
+    """
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
 
 # Create your views here.
 
@@ -66,8 +75,10 @@ def register(request):
             return redirect("/")
     else:
         form = RegisterForm()
+        
+    page = "register"
 
-    return render(request, "registration/register.html", {"form":form})
+    return render(request, "registration/register.html", {"form":form,"page":page})
 
 
 @login_required(login_url='/information')
@@ -152,11 +163,17 @@ def catinfo(request):
         if request.POST["CatID"]:
 
             c = Cats.objects.get(id=request.POST["CatID"])
+            
+            if "cured" in request.POST:
+                c.cured = True
+            else:
+                c.cured = False
 
             if  "treatmentstart" in request.POST and re.match(pattern,request.POST["treatmentstart"]):
                 c.treatment_start = request.POST["treatmentstart"]
 
             if  "relapse_date" in request.POST and re.match(pattern,request.POST["relapse_date"]):
+                c.cured = False
                 relapse = RelapseDate(
                     cat_name = c,
                     relapse_start = request.POST["relapse_date"],
@@ -483,6 +500,50 @@ def injectionlog(request):
             cat_name=cat).filter(
             active=True).annotate(
             inj_date = ExpressionWrapper(Cast(F('injection_time'), DateField())-F('cat_name__treatment_start'),output_field=DurationField())).order_by('injection_time')
+            
+    if "export" in request.GET:
+        """
+        Export the log files as a csv
+        """
+        
+        # Generate a sequence of rows. The range is based on the maximum number of
+        # rows that can be handled by a single sheet in most spreadsheet
+        # applications.
+        csv_file = [[
+            "GS Brand",
+            "Cat Weight", 
+            "Units", 
+            "Injection Date",
+            "Injection Amount (mL)", 
+            "Cat Behavior (1-5)",
+            "Injection Notes",
+            "Gaba Dose (mL)",
+            "Other Notes",
+            "New Symptoms"]]
+            
+        for row in injections:
+            csv_file.append([
+                row.gs_brand_id,
+                row.cat_weight,
+                row.wt_units,
+                row.injection_time,
+                row.injection_amount,
+                row.cat_behavior_today,
+                row.injection_notes,
+                row.gaba_dose,
+                row.other_notes,	
+                row.new_symptom            
+            ])
+        
+        date_format = datetime.now()
+        filename="InjectionLog_%s_%s.csv" % (cat.name, date_format.strftime("%Y-%m-%d"))
+        pseudo_buffer = Echo()
+        writer = csv.writer(pseudo_buffer)
+        response = StreamingHttpResponse((writer.writerow(row) for row in csv_file),
+                                        content_type="text/csv")
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        return response
+    
         
     return render(request, template, {"page":page,"injections":injections,"validcats":validcats, "cat":cat, "sharable":sharable})
 
@@ -619,7 +680,6 @@ def parse_sharable_url(url):
     except:
         return False
 
-
 @login_required
 def track_warrior(request):
     if request.method == "POST":
@@ -640,3 +700,21 @@ def track_warrior(request):
 
 
     return render(request, "InjectionLog/tracker.html",{"tracking":tracking})
+    
+def vet_info(request):
+    """
+    Generate weight and dosing tables for cats
+    """
+    ...
+    
+def data_analysis(request):
+    """
+    View to do the number crunching
+    """
+    # Number of cats in treatment
+    # Number of cured cats
+    # Number of cats with relapse
+    # Average weight gains per cat
+    
+    ...
+    

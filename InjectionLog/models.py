@@ -31,6 +31,7 @@ class Cats(models.Model):
     extended_treatment = models.IntegerField(default=0, null=False)
     test_cat = models.BooleanField(default=False)
     sharable = models.CharField(max_length=32, null=True)
+    cured = models.BooleanField(default=False)
     
 
 

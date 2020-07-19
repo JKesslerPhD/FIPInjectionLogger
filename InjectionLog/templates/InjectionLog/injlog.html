@@ -26,7 +26,6 @@
     <thead>
       <tr>
         <th scope="col">Date</th>
-        <th scope="col">Day Number</th>
         <th scope="col">Weight</th>
         <th scope="col">Cat Behavior</th>
         <th scope="col">New Symptoms</th>
@@ -41,12 +40,14 @@
     <tbody>
     {% for injection in injections %}
       <tr>
-        <th scope="row">{{ injection.injection_time|date:'m/d/Y - h:i a'}} </th>
-        <td>{{ injection.inj_date|duration_days}}</td>
+        <td><a href="#" data-toggle="tooltip" title="{{injection.inj_date|duration_days}} - {{ injection.injection_time|date:'h:i a'}} ">{{ injection.injection_time|date:'m/d/Y'}}</a> </td>
         <td>{{ injection.cat_weight }} {{injection.wt_units}}</td>
         <td>{{ injection.cat_behavior_today}}</td>
         <td>{{ injection.new_symptom}}</td>
-        <td>{{ injection.injection_amount }}</td>
+        <td>
+          <a href="#" data-toggle="tooltip" title="{{injection.gs_brand_id}}">{{ injection.injection_amount }}</a>
+
+        </td>
         <td>{{ injiection.gaba_dose }}</td>
         <td>{{ injection.injection_notes }}</td>
         <td>{{ injection.other_notes }}</td>
@@ -68,6 +69,12 @@
     </tbody>
   </table>
 </div>
+<div class="col"><a href="?selectedcat={{request.GET.selectedcat}}{% if request.GET.sharable %}&sharable={{request.GET.sharable}}{% endif %}&export">Export as CSV</a></div>
 </main>
+<script>
+$(document).ready(function(){
+  $('[data-toggle="tooltip"]').tooltip();
+});
+</script>
 
 {% endblock %}

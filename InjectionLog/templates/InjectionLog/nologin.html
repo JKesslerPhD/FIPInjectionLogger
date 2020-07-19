@@ -9,13 +9,26 @@
 
 		 <div class="collapse navbar-collapse" id="navbarsExampleDefault">
 			 <ul class="navbar-nav mr-auto">
+				 {% if page == "information" %}
 				 <li class="nav-item active">
+				 {% else %}
+				 <li class="nav-item">
+				 {% endif %}
 					 <a class="nav-link" href="/information">Information <span class="sr-only">(current)</span></a>
 				 </li>
+				 {% if page == "login" %}
+	       <li class="nav-item active">
+	       {% else %}
+	       <li class="nav-item">
+	       {% endif %}
 				 <li class="nav-item">
 					 <a class="nav-link" href="/accounts/login">Login</a>
 				 </li>
+				 {% if page == "register" %}
+				 <li class="nav-item active">
+				 {% else %}
 				 <li class="nav-item">
+				 {% endif %}
 					 <a class="nav-link" href="/register">New Account</a>
 				 </li>
 		 </div>

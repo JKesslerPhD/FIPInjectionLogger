@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.conf import settings
+from django.utils import timezone
 from django.shortcuts import redirect
 from django.db.models.functions import Cast
 from django.contrib.auth import authenticate, login
@@ -12,14 +13,9 @@ from django.db.models.fields import DateField
 from django.db.models import F, DurationField, ExpressionWrapper
 from .models import WarriorTracker
 import re
-from django.core.mail import send_mail
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
-from django.template import loader, Context
-from django.http import HttpResponse
-from django.core.files.base import File
-from gdstorage.storage import GoogleDriveStorage
 import hashlib
 import csv
 import decimal
@@ -85,6 +81,12 @@ def register(request):
 def main_site(request):
     sc = None
     relapse = None
+    
+    # Define a local timezone from the IP Address
+    tz = get_local_timezone(request)
+    timezone.activate(tz)
+    now = timezone.make_aware(datetime.now())
+    
     validcats = Cats.objects.filter(owner=request.user)
     if not SelectedCat.objects.filter(user=request.user).exists():
         if Cats.objects.filter(owner=request.user).exists():
@@ -106,7 +108,7 @@ def main_site(request):
 
     try:
         relapse = RelapseDate.objects.filter(cat_name = sc.cat_name).order_by('-relapse_start')[0]
-        treatment_duration = datetime.now().date()-relapse.relapse_start
+        treatment_duration = now.date()-relapse.relapse_start
         try:
             inj_progress={}
             inj_date = InjectionLog.objects.filter(
@@ -120,9 +122,9 @@ def main_site(request):
 
     except:
         try:
-            treatment_duration = datetime.now().date()-sc.cat_name.treatment_start
+            treatment_duration = now.date()-sc.cat_name.treatment_start
         except:
-            treatment_duration = datetime.now().date()-datetime.now().date()
+            treatment_duration = now.date()-now.date()
         try:
             inj_progress={}
             inj_date = InjectionLog.objects.filter(
@@ -395,6 +397,7 @@ def recordinjection(request):
     page="injection"
     drugs = GSBrand.objects.all().order_by('brand')
     userGS = UserGS.objects.all()
+    local_time = get_local_timezone(request)
     cat_name = selected_cat(request)
     if not cat_name:
         return redirect("/?error=Please add a cat to your account first")
@@ -450,7 +453,7 @@ def recordinjection(request):
         for row in q:
             if i_date[:10] in row.inj_value.strftime("%Y-%m-%d"):
                 request.GET = request.POST
-                return render(request, template, {"page":page,"dose":True, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"The injection date has already been recorded.  Add information for a different day."})
+                return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"The injection date has already been recorded.  Add information for a different day."})
 
         log = InjectionLog(
                 owner = user,
@@ -474,7 +477,7 @@ def recordinjection(request):
         return redirect("/?message=success&weight=%s&unit=%s&ns=%s" % (weight,unit,ns))
 
 
-    return render(request, template, {"page":page, "dose":True,"drugs":drugs,"userGS":userGS, "validcats":validcats})
+    return render(request, template, {"page":page, "local_time":local_time, "dose":True,"drugs":drugs,"userGS":userGS, "validcats":validcats})
 
 @login_required
 def injectionlog(request):
@@ -549,8 +552,13 @@ def injectionlog(request):
 
 @login_required
 def observation_log(request):
+    
+    # Define a local timezone from the IP Address
+    tz = get_local_timezone(request)
+    timezone.activate(tz)
+    now = timezone.make_aware(datetime.now())
 
-    validcats = Cats.objects.filter(owner=request.user).filter(treatment_start__lte=(datetime.now()-timedelta(days=84)))
+    validcats = Cats.objects.filter(owner=request.user).filter(treatment_start__lte=(now-timedelta(days=84)))
     cat = selected_cat(request)
 
     if not cat:
@@ -718,3 +726,20 @@ def data_analysis(request):
     
     ...
     
+def get_local_timezone(request):
+    import requests
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    if ip == "127.0.0.1":
+        ip = "72.105.141.28"
+    try:    
+        ipinfo = requests.get('http://ip-api.com/json/%s' % ip)
+        ipinfo = ipinfo.json()
+        tz = ipinfo["timezone"]
+    except:
+        tz = "UTC"
+    
+    return tz

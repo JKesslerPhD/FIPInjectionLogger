@@ -118,8 +118,10 @@
           </div>
           <div class="form-text">Date and time of injecton</div>
             <div class="for-row col-xsm-6 mb-3">
-              {% now 'h:i A' as my_time %}
+              {% load tz %}
+              {% timezone local_time %}
               <input name="inj_date" class="form-control" type="datetime-local" value="{% if request.GET.inj_date %}{{request.GET.inj_date}}{% else %}{% now 'Y-m-d\TH:i' %}{% endif %}" max="{{now|max_time|date:'Y-m-d\TH:i'}}" id="injectiondate">
+              {% endtimezone %}
             </div>
             <hr class="my-3">
             <div class="form-row">

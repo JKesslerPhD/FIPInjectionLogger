@@ -10,7 +10,7 @@
 <main role="main">
 
   <div class="container">
-    <h2>Injection Volume Calculation</h2>
+    <h2>GS Dose Calculation</h2>
     {% if error %}
     <div class="alert alert-danger">Error: {{ error }}</div>
     {% endif %}
@@ -40,7 +40,7 @@
         </div>
       </div>
       <div class="form-row col-md-6 mb-3">
-        <label for="Dose">GS Dose</label>
+        <label for="Dose">GS Dosage</label>
         <div class="input-group mb-3">
 
             <input required class="form-control" value="{{ request.GET.GSDose }}" type="number" name="GSDose" class="form-control" id="GSDose" max="50" aria-describedby="dose_note" onchange="get_dosage()">
@@ -74,7 +74,7 @@
           <div class="input-group">
             <input name="concentration" id="concentration" class="form-control" value={% if not request.GET.GSBrand %} 0 {% else %}{{ request.GET.GSBrand }} {% endif %} disabled>
             <div class="form-group-append">
-              <span id="conc_units" class="input-group-text">g/mL</span>
+              <span id="conc_units" class="input-group-text">mg/mL or mg/pill</span>
             </div>
           </div>
         </div>
@@ -92,8 +92,8 @@
         {% endif %}
       </div>
       <div role="alert" class="alert alert-success">
-        <h4>Volume of GS Needed</h4>
-        <div id="totaldose">{% if request.GET.calculateddose %} {{request.GET.calculateddose}} mL needed {% else %}Please enter values...{% endif %}</div>
+        <h4>Dose of GS Needed</h4>
+        <div id="totaldose">{% if request.GET.calculateddose %} {{request.GET.calculateddose}} mLs or pills needed {% else %}Please enter values...{% endif %}</div>
       </div>
       <input type="hidden" id="calculateddose" name="calculateddose" value="{{request.GET.calculateddose}}">
     {% if page != "injection" %}
@@ -106,7 +106,7 @@
 
   {% if page == "injection" %}
     <div class="jumbotron" name="injections" id="injections">
-      <h2>Injection Details</h2>
+      <h2>Administration Details</h2>
       <div class="container">
           <div class="form-row col-md-6 mb-3">
             <label for="selectedcat">Selected Cat</label>
@@ -215,7 +215,7 @@
       <div class="form-row col-md-6 mb-3">
         <label for="injectionnotes">Injection Notes</label>
         <textarea class="form-control" name="injectionnotes" id="injectionnotes" rows="2">{{request.GET.injectionnotes}}</textarea>
-        <small class="form-text text-muted">What side? How'd it go?</small>
+        <small class="form-text text-muted">What side was the injection on? How'd it go? Did kitty resist more than usual?</small>
 
       </div>
       <hr class="my-3">

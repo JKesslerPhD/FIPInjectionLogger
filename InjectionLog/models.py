@@ -39,12 +39,14 @@ class GSBrand(models.Model):
     brand = models.CharField(primary_key=True, max_length = 100)
     concentration = models.DecimalField(max_digits=4, decimal_places=2)
     price = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    admin_method = models.CharField(max_length=10, default="Injectable")
 
 class UserGS(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)
     brand = models.CharField(primary_key=True, max_length = 100)
     concentration = models.DecimalField(max_digits=4, decimal_places=2)
     price = models.DecimalField(max_digits=5, decimal_places=2)
+    admin_method = models.CharField(max_length=10, default="Injectable")
 
 class InjectionLog(models.Model):
     owner = models.ForeignKey(User, on_delete = models.PROTECT)

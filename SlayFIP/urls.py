@@ -45,5 +45,6 @@ urlpatterns = [
     path("observationlog/", views.observation_log),
     path("upload_cbc/",views.upload_file),
     path("trackwarrior/",views.track_warrior),
+    path("change_record/",views.change_record),
     path('accounts/', include('django.contrib.auth.urls')),
 ]

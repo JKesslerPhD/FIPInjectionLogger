@@ -16,6 +16,7 @@ import re
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
+import pytz
 import hashlib
 import csv
 import decimal
@@ -85,7 +86,8 @@ def main_site(request):
     # Define a local timezone from the IP Address
     tz = get_local_timezone(request)
     timezone.activate(tz)
-    now = timezone.make_aware(datetime.now())
+    now = datetime.now(pytz.timezone(tz))
+    
     
     validcats = Cats.objects.filter(owner=request.user)
     if not SelectedCat.objects.filter(user=request.user).exists():
@@ -111,10 +113,10 @@ def main_site(request):
         treatment_duration = now.date()-relapse.relapse_start
         try:
             inj_progress={}
-            inj_date = InjectionLog.objects.filter(
+            inj_date = timezone.make_aware(InjectionLog.objects.filter(
                 owner=request.user).filter(
                 cat_name=sc.cat_name).filter(
-                active=True).order_by("-injection_time")[0].injection_time.date() - relapse.relapse_start
+                active=True).order_by("-injection_time")[0].injection_time).date() - relapse.relapse_start
             inj_progress["inj_date"] = inj_date.days
 
         except:
@@ -483,6 +485,7 @@ def recordinjection(request):
 def injectionlog(request):
     validcats = Cats.objects.filter(owner=request.user)
     cat = selected_cat(request)
+    local_time = get_local_timezone(request)
 
     if not cat:
         return redirect("/?error=No data has been recorded...")
@@ -492,6 +495,7 @@ def injectionlog(request):
     
     if "sharable" not in request.GET:
         sharable = False
+        
         injections = InjectionLog.objects.filter(
             owner=request.user).filter(
             cat_name=cat).filter(
@@ -548,8 +552,23 @@ def injectionlog(request):
         return response
     
         
-    return render(request, template, {"page":page,"injections":injections,"validcats":validcats, "cat":cat, "sharable":sharable})
+    return render(request, template, {"page":page,"injections":injections, "local_time":local_time, "validcats":validcats, "cat":cat, "sharable":sharable})
 
+def change_record(request):
+    if request.method == "POST":
+        record = InjectionLog.objects.get(id=request.POST["inj_id"])
+        record.injection_time = request.POST["inj_date"]
+        record.cat_behavior_today = request.POST["cat_rating"]
+        record.injection_amount = request.POST["injection_amount"]
+        record.new_symptom = request.POST["new_symptom"]
+        record.injection_notes = request.POST["injection_notes"]
+        record.other_notes = request.POST["other_notes"]
+        record.gaba_dose = request.POST["gaba_dose"]
+        
+        record.save()
+        return redirect("/log/?message=update&selectedcat=%s" % request.POST["cat_name"])
+        
+        
 @login_required
 def observation_log(request):
     

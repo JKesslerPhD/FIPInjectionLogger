@@ -33,33 +33,193 @@
         <th scope="col">Gaba Dosage mg</th>
         <th scope="col">Injection Notes</th>
         <th scope="col">Other Notes</th>
-        <th scope="col">Delete Record</th>
+        <th scope="col">Manage Record</th>
 
       </tr>
     </thead>
     <tbody>
     {% for injection in injections %}
       <tr>
-        <td><a href="#" data-toggle="tooltip" title="{{injection.inj_date|duration_days}} - {{ injection.injection_time|date:'h:i a'}} ">{{ injection.injection_time|date:'m/d/Y'}}</a> </td>
+        <td id="{{injection.inj_date|duration_days}}"><a href="#{{injection.inj_date|duration_days}}" data-toggle="tooltip" title="{{injection.inj_date|duration_days}} - {{ injection.injection_time|date:'h:i a'}} ">{{ injection.injection_time|date:'m/d/Y'}}</a> </td>
         <td>{{ injection.cat_weight }} {{injection.wt_units}}</td>
         <td>{{ injection.cat_behavior_today}}</td>
         <td>{{ injection.new_symptom}}</td>
         <td>
-          <a href="#" data-toggle="tooltip" title="{{injection.gs_brand_id}}">{{ injection.injection_amount }}</a>
+          <a href="#{{injection.inj_date|duration_days}}" data-toggle="tooltip" title="{{injection.gs_brand_id}}">{{ injection.injection_amount }}</a>
 
         </td>
-        <td>{{ injiection.gaba_dose }}</td>
+        <td>{{ injection.gaba_dose }}</td>
         <td>{{ injection.injection_notes }}</td>
         <td>{{ injection.other_notes }}</td>
         <td>
           {% if not sharable %}
-          <a href="/delete?delete_id={{injection.id}}&selectedcat={{request.GET.selectedcat}}&log=log" onclick="return confirm('Are you sure you want to delete this?')">
-            <svg class="bi bi-trash2" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" d="M3.18 4l1.528 9.164a1 1 0 0 0 .986.836h4.612a1 1 0 0 0 .986-.836L12.82 4H3.18zm.541 9.329A2 2 0 0 0 5.694 15h4.612a2 2 0 0 0 1.973-1.671L14 3H2l1.721 10.329z"/>
-              <path d="M14 3c0 1.105-2.686 2-6 2s-6-.895-6-2 2.686-2 6-2 6 .895 6 2z"/>
-              <path fill-rule="evenodd" d="M12.9 3c-.18-.14-.497-.307-.974-.466C10.967 2.214 9.58 2 8 2s-2.968.215-3.926.534c-.477.16-.795.327-.975.466.18.14.498.307.975.466C5.032 3.786 6.42 4 8 4s2.967-.215 3.926-.534c.477-.16.795-.327.975-.466zM8 5c3.314 0 6-.895 6-2s-2.686-2-6-2-6 .895-6 2 2.686 2 6 2z"/>
-            </svg>
-          </a>
+          <div id="edit_modal_{{forloop.counter}}">
+            <a href="/delete?delete_id={{injection.id}}&selectedcat={{request.GET.selectedcat}}&log=log" onclick="return confirm('Are you sure you want to delete this?')">
+              <svg class="bi bi-trash2" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M3.18 4l1.528 9.164a1 1 0 0 0 .986.836h4.612a1 1 0 0 0 .986-.836L12.82 4H3.18zm.541 9.329A2 2 0 0 0 5.694 15h4.612a2 2 0 0 0 1.973-1.671L14 3H2l1.721 10.329z"/>
+                <path d="M14 3c0 1.105-2.686 2-6 2s-6-.895-6-2 2.686-2 6-2 6 .895 6 2z"/>
+                <path fill-rule="evenodd" d="M12.9 3c-.18-.14-.497-.307-.974-.466C10.967 2.214 9.58 2 8 2s-2.968.215-3.926.534c-.477.16-.795.327-.975.466.18.14.498.307.975.466C5.032 3.786 6.42 4 8 4s2.967-.215 3.926-.534c.477-.16.795-.327.975-.466zM8 5c3.314 0 6-.895 6-2s-2.686-2-6-2-6 .895-6 2 2.686 2 6 2z"/>
+              </svg>
+            </a>
+
+            <button {% if request.GET.sharable %} disabled {% endif %} type="button" class="btn btn-link" data-toggle="modal" data-target="#bw-modal_{{forloop.counter}}">
+              <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-pencil-square" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456l-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+              </svg>
+            </button>
+
+            <div class="modal fade" id="bw-modal_{{forloop.counter}}">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Alter Record {{ injection.injection_time|date:'m/d/Y'}}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <form class="needs-validation" novalidate action="/change_record/" method="POST" id="change_record" name="change_record" enctype="multipart/form-data">
+                      <div class="modal-body">
+
+                          {% csrf_token %}
+                          <div class="alert alert-info">
+                            <small>If you need to make substantial changes, please delete the record and add a new one.</small>
+                          </div>
+                          <input type="hidden" name="cat_name" value="{{cat.id}}">
+                          <input type="hidden" name="inj_id" value="{{injection.id}}">
+                          <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                              <div class="form-group">
+                                <div class="form-row">
+                                    <label for="injectiondate" class="control-label">Injection Date</label>
+                                    {% load tz %}
+                                    {% timezone local_time %}
+                                    <input name="inj_date" class="form-control" type="datetime-local" value="{{injection.injection_time|date:'Y-m-d\TH:i'}}" max="{{now|max_time|date:'Y-m-d\TH:i'}}" id="injectiondate">
+                                    {% endtimezone %}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="form-row">
+
+                              <div class="form-group">
+
+                                <div class="form-row">
+                                  <div id="behavior" name="behavior_note" class="form-text">
+                                    How did your cat do today?
+                                  </div>
+                                </div>
+                                <div class="form-row">
+                                  <div class="col-1">
+                                    <small class="form-text">
+                                    I'm worried
+                                    </small>
+                                  </div>
+                                  <div class="col-6"><p></div>
+                                  <div class="col-1">
+                                    <small class="form-text">
+                                    Acts cured!
+                                    </small>
+                                  </div>
+                                </div>
+                                <div class="form-row">
+                                  <div class="col-1 form-check form-check-inline">
+                                    <input class="form-check-input" {% if injection.cat_behavior_today == 1 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio1" value="1" required>
+                                    <label class="form-check-label" for="inlineRadio1">1</label>
+                                  </div>
+                                  <div class="col-1 form-check form-check-inline">
+                                    <input class="form-check-input" {% if injection.cat_behavior_today == 2 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio2" value="2" required>
+                                    <label class="form-check-label" for="inlineRadio2">2</label>
+                                  </div>
+                                  <div class="col-1 form-check form-check-inline">
+                                    <input class="form-check-input" {% if injection.cat_behavior_today == 3 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio3" value="3" required>
+                                    <label class="form-check-label" for="inlineRadio3">3</label>
+                                  </div>
+                                  <div class="col-1 form-check form-check-inline">
+                                    <input class="form-check-input" {% if injection.cat_behavior_today == 4 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio4" value="4" required>
+                                    <label class="form-check-label" for="inlineRadio3">4</label>
+                                  </div>
+                                  <div class="col-1 form-check form-check-inline">
+                                    <input class="form-check-input" {% if injection.cat_behavior_today == 5 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio3" value="5" required>
+                                    <label class="form-check-label" for="inlineRadio3">5</label>
+                                    <span class="container invalid-feedback">
+                                      Enter a qualitative measure
+                                    </span>
+                                  </div>
+                              </div>
+                              </div>
+                            </div>
+                           <div class="row">
+                             <div class="col-md-6 mb-3">
+                               <div class="form-group">
+                                <div class="form-row">
+                                  <label for="id_dose" class="control-label">Dose Given</label>
+                                  <div class="input-group">
+                                    <input class="form-control" name="injection_amount" value="{{ injection.injection_amount }}"></input>
+                                    <div class="form-group-append">
+                                      <span class="input-group-text">mL</span>
+                                    </div>
+                                  </div>
+                                 </div>
+                               </div>
+                             </div>
+                           </div>
+                           <div class="row">
+                             <div class="col-md-6 mb-3">
+                               <div class="form-group">
+                                <div class="form-row">
+                                  <label for="id_gaba" class="control-label">Gabapentin Given</label>
+                                  <div class="input-group">
+                                    <input class="form-control" name="gaba_dose" value="{{ injection.gaba_dose }}"></input>
+                                    <div class="form-group-append">
+                                      <span class="input-group-text">mg</span>
+                                    </div>
+                                  </div>
+                                 </div>
+                               </div>
+                             </div>
+                           </div>
+
+                           <div class="row">
+                             <div class="col-md-6 mb-3">
+                               <div class="form-group">
+                                 <label for="id_new_symptoms" class="control-label">New Symptoms</label>
+                                 <textarea {% if request.GET.sharable %} disabled {% endif %} class="form-control" name="new_symptom" id="id_new_symptoms">{{ injection.new_symptom}}</textarea>
+
+                               </div>
+                             </div>
+                           </div>
+
+
+                           <div class="row">
+                             <div class="col-md-6 mb-3">
+                               <div class="form-group">
+                                 <label for="id_injection_notes" class="control-label">Injection Notes</label>
+                                 <textarea {% if request.GET.sharable %} disabled {% endif %} class="form-control" name="injection_notes" id="id_inj_notes">{{ injection.injection_notes}}</textarea>
+
+                               </div>
+                             </div>
+                           </div>
+
+                           <div class="row">
+                             <div class="col-md-6 mb-3">
+                               <div class="form-group">
+                                 <label for="id_other_notes" class="control-label">Other Notes</label>
+                                 <textarea {% if request.GET.sharable %} disabled {% endif %} class="form-control" name="other_notes" id="id_other_notes">{{ injection.other_notes}}</textarea>
+
+                               </div>
+                             </div>
+                           </div>
+                      </div>
+                      <div class="modal-footer">
+                          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                          <button id="btnSubmitModal" {% if request.GET.sharable %} disabled {% endif %} type="submit" class="btn btn-info">Save Changes</button>
+                      </div>
+                    </form>
+                    </div>
+                  </div>
+              </div>
+          </div>
           {% else %}
           _
          {% endif %}

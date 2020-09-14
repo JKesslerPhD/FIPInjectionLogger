@@ -29,7 +29,7 @@ function get_dosage()
   var dose = CatWeight * WeightUnits() * GSDose / Concentration;
 
   if(isFinite(dose)){
-    var calculated = Math.ceil(dose*10)/10
+    var calculated = Math.ceil(dose*100)/100
     document.getElementById("calculateddose").value= calculated;
 
     document.getElementById("totaldose").innerHTML=  calculated + " mL needed";

@@ -23,7 +23,10 @@ def duration_days(td):
 def duration_progress(td, extension=0):
     if td:
         length = 84 + extension
-        return round((float(td)+1)/length*100)
+        if float(td) > length:
+            return 100
+        else:
+            return round((float(td)+1)/length*100)
     return "1"
     
 @register.filter

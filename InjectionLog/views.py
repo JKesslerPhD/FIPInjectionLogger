@@ -398,7 +398,7 @@ def recordinjection(request):
     template ='InjectionLog/dosecalc.html'
     page="injection"
     drugs = GSBrand.objects.all().order_by('brand')
-    userGS = UserGS.objects.all()
+    userGS = UserGS.objects.filter(user=request.user)
     local_time = get_local_timezone(request)
     cat_name = selected_cat(request)
     if not cat_name:
@@ -406,13 +406,18 @@ def recordinjection(request):
 
     try:
         latest_data = InjectionLog.objects.filter(owner=request.user).filter(cat_name=cat_name).order_by('-injection_time')[0]
-        conc = latest_data.gs_brand.concentration
+        try:
+            gs_brand = GSBrand.objects.get(brand=latest_data.gs_brand)  
+        except:
+            gs_brand = UserGS.objects.get(brand=latest_data.gs_brand, user=request.user)
+
+        conc = gs_brand.concentration
         dose = round(conc*latest_data.injection_amount/latest_data.cat_weight*decimal.Decimal(2.204),0)
         request.GET = request.GET.copy()
         request.GET["selectedcat"] = cat_name.id
 
         request.GET["CatWeight"] = latest_data.cat_weight
-        request.GET["brand_value"] = latest_data.gs_brand_id
+        request.GET["brand_value"] = gs_brand.brand
         if latest_data.wt_units == "kg":
             request.GET["weight_units"]=True
             dose = int(round(conc*latest_data.injection_amount/latest_data.cat_weight,0))
@@ -427,7 +432,7 @@ def recordinjection(request):
         user   = request.user
         cat = Cats.objects.get(id=request.POST["selectedcat"])
         weight = request.POST["CatWeight"]
-        brand  = GSBrand.objects.get(brand=request.POST["brand_value"])
+        brand  = request.POST["brand_value"]
         i_date = request.POST["inj_date"]
         rating = request.POST["cat_rating"]
         amount = request.POST["calculateddose"]
@@ -530,7 +535,7 @@ def injectionlog(request):
             
         for row in injections:
             csv_file.append([
-                row.gs_brand_id,
+                row.gs_brand,
                 row.cat_weight,
                 row.wt_units,
                 row.injection_time,

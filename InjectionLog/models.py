@@ -43,14 +43,14 @@ class GSBrand(models.Model):
 
 class UserGS(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)
-    brand = models.CharField(primary_key=True, max_length = 100)
+    brand = models.CharField(max_length = 100, null=False)
     concentration = models.DecimalField(max_digits=4, decimal_places=2)
     price = models.DecimalField(max_digits=5, decimal_places=2)
     admin_method = models.CharField(max_length=10, default="Injectable")
 
 class InjectionLog(models.Model):
     owner = models.ForeignKey(User, on_delete = models.PROTECT)
-    gs_brand = models.ForeignKey(GSBrand, on_delete = models.PROTECT)
+    gs_brand = models.CharField(max_length = 100, null=True)
     date_added = models.DateField(default = date.today, editable=False)
     cat_name = models.ForeignKey(Cats, on_delete = models.PROTECT)
     cat_weight = models.DecimalField(max_digits=4, decimal_places=2, null=False)

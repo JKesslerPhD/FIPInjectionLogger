@@ -68,6 +68,7 @@
             <option value="{{brand.concentration}}" {% if request.GET.brand_value == brand.brand %}  selected  {% endif %}>{{brand.brand}}</option>
             {% endfor %}
           </select>
+          <small>Not seeing it? <a href="/add_gs/">Add custom brand</a></small>
         </div>
         <div class="col">
           <label for="concentration">Concentration</label>

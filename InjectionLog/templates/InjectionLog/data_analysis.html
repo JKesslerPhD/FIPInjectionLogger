@@ -1,0 +1,71 @@
+{% extends 'InjectionLog/nologin.html' %}
+{% load groupfilter %}
+{% block maincontent %}
+<style>
+.modebar{
+      display: none !important;
+}
+</style>
+<main role="main">
+  <div class="container alert alert-dark">
+    <div class="alert alert-warning">
+      This page summarizes the data that the site has logged from ongoing treatment of cats.
+      As the data is user-entered, it may be prone to error. Nonetheless, this provides an estimate for what
+      one might expect when treating FIP using GS-441524.
+
+    </div>
+
+    <div class="align-middle">
+
+        {% autoescape off %}
+         {{ fip_fig }}
+         {% endautoescape %}
+    </div>
+    <div class="alert alert-light">
+      <strong>Figure 1.</strong> The site has captured data for {{dry_cases}} cats with dry FIP and {{wet_cases}} cats with wet FIP
+    </div>
+
+    <div class="align-middle">
+
+      {% autoescape off %}
+       {{ wt_fig }}
+       {% endautoescape %}
+
+    </div>
+
+    <div class="alert alert-light"><strong>Figure 2.</strong> This graph shows the percent
+            change in weight for logged cats over the course of their treatment.
+            For <a href="/costs">modeling purposes</a>, both the days of treatment and the cat's starting weight
+            are used to predict how a cat's weight might change over time.
+    </div>
+
+    <div class="align-middle">
+
+      {% autoescape off %}
+       {{ age_fig }}
+       {% endautoescape %}
+
+    </div>
+
+    <div class="alert alert-light">
+      <strong>Figure 3.</strong> This graph shows the age distribution rounded to the nearest year for logged cats
+    </div>
+
+    <div class="align-middle">
+
+      {% autoescape off %}
+       {{ duration_fig }}
+       {% endautoescape %}
+
+    </div>
+    <div class="alert alert-light">
+      <p><text class="text-danger">{{84_cats}} cats</text> that have been logged are now past the 84-day treatment period</p>
+      <strong>Figure 4.</strong> This graph shows the number of cats the siste has logged significant treatment data for relative to how long ago the cat started treatment using GS
+    </div>
+
+  </div>
+
+</main>
+
+
+{% endblock %}

@@ -23,6 +23,7 @@ function get_dosage()
   var brand_type = theForm.elements["GSBrand"].options[option_select].text;
   var CatWeight = theForm.elements["inputWeight"].value;
   var GSDose = theForm.elements["GSDose"].value;
+  var Pill = theForm.elements["GSBrand"].getAttribute("data-pills");
 
   document.getElementById("concentration").value= Concentration;
   document.getElementById("brand_value").value= brand_type;
@@ -31,9 +32,7 @@ function get_dosage()
   if(isFinite(dose)){
     var calculated = Math.ceil(dose*10)/10
     document.getElementById("calculateddose").value= calculated;
-
     document.getElementById("totaldose").innerHTML=  calculated + " mL needed";
-
   } else {
     document.getElementById("totaldose").innerHTML= "Please enter values...";
   }

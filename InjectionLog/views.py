@@ -21,6 +21,17 @@ import hashlib
 import csv
 import decimal
 from django.http import StreamingHttpResponse
+import pandas as pd
+import statsmodels.formula.api as smf
+from django.db import connection
+from plotly.offline import plot
+import plotly.graph_objs as go
+import plotly.express as px
+import os
+import json
+import math
+
+
 
 class Echo:
     """An object that implements just the write method of the file-like
@@ -41,7 +52,7 @@ def selected_cat(request):
             return cats[0]
         except:
             return False
-        
+
     if "selectedcat" not in request.GET:
         try:
             sc = SelectedCat.objects.filter(user=request.user)[0]
@@ -72,7 +83,7 @@ def register(request):
             return redirect("/")
     else:
         form = RegisterForm()
-        
+
     page = "register"
 
     return render(request, "registration/register.html", {"form":form,"page":page})
@@ -82,13 +93,13 @@ def register(request):
 def main_site(request):
     sc = None
     relapse = None
-    
+
     # Define a local timezone from the IP Address
     tz = get_local_timezone(request)
     timezone.activate(tz)
     now = datetime.now(pytz.timezone(tz))
-    
-    
+
+
     validcats = Cats.objects.filter(owner=request.user)
     if not SelectedCat.objects.filter(user=request.user).exists():
         if Cats.objects.filter(owner=request.user).exists():
@@ -113,10 +124,10 @@ def main_site(request):
         treatment_duration = now.date()-relapse.relapse_start
         try:
             inj_progress={}
-            inj_date = timezone.make_aware(InjectionLog.objects.filter(
+            inj_date = InjectionLog.objects.filter(
                 owner=request.user).filter(
                 cat_name=sc.cat_name).filter(
-                active=True).order_by("-injection_time")[0].injection_time).date() - relapse.relapse_start
+                active=True).order_by("-injection_time")[0].injection_time.date() - relapse.relapse_start
             inj_progress["inj_date"] = inj_date.days
 
         except:
@@ -167,7 +178,7 @@ def catinfo(request):
         if request.POST["CatID"]:
 
             c = Cats.objects.get(id=request.POST["CatID"])
-            
+
             if "cured" in request.POST:
                 c.cured = True
             else:
@@ -375,12 +386,14 @@ def add_gs(request):
                 user_gs = GSBrand(
                     brand = request.POST["GSBrand"],
                     concentration = request.POST["GSConcentration"],
+                    admin_method = request.POST["GSAdmin"],
                     price = request.POST["GSPrice"])
             else:
                 user_gs = UserGS(
                     user = request.user,
                     brand = request.POST["GSBrand"],
                     concentration = request.POST["GSConcentration"],
+                    admin_method = request.POST["GSAdmin"],
                     price = request.POST["GSPrice"])
             user_gs.save()
             return redirect("/?message=success")
@@ -397,9 +410,11 @@ def recordinjection(request):
 
     template ='InjectionLog/dosecalc.html'
     page="injection"
+    ns=False
     drugs = GSBrand.objects.all().order_by('brand')
     userGS = UserGS.objects.filter(user=request.user)
     local_time = get_local_timezone(request)
+    tz = pytz.timezone(local_time)
     cat_name = selected_cat(request)
     if not cat_name:
         return redirect("/?error=Please add a cat to your account first")
@@ -407,7 +422,7 @@ def recordinjection(request):
     try:
         latest_data = InjectionLog.objects.filter(owner=request.user).filter(cat_name=cat_name).order_by('-injection_time')[0]
         try:
-            gs_brand = GSBrand.objects.get(brand=latest_data.gs_brand)  
+            gs_brand = GSBrand.objects.get(brand=latest_data.gs_brand)
         except:
             gs_brand = UserGS.objects.get(brand=latest_data.gs_brand, user=request.user)
 
@@ -445,7 +460,7 @@ def recordinjection(request):
         else:
             newsymptom = ""
             ns = False
-        
+
         if "gabadose" in request.POST:
             gabadose = request.POST["gabadose"]
         else:
@@ -458,7 +473,7 @@ def recordinjection(request):
 
         q = InjectionLog.objects.filter(owner = user).filter(cat_name = cat).filter(active=True).annotate(inj_value=Cast('injection_time', DateField()),)
         for row in q:
-            if i_date[:10] in row.inj_value.strftime("%Y-%m-%d"):
+            if i_date[:10] in row.inj_value.strftime("%Y-%m-%d") and "multi_entry" not in request.POST:
                 request.GET = request.POST
                 return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"The injection date has already been recorded.  Add information for a different day."})
 
@@ -467,7 +482,7 @@ def recordinjection(request):
                 gs_brand = brand,
                 cat_name = cat,
                 cat_weight= weight,
-                injection_time = i_date,
+                injection_time = tz.localize(datetime.strptime(i_date,"%Y-%m-%dT%H:%M")),
                 injection_amount = amount,
                 cat_behavior_today = rating,
                 injection_notes = i_note,
@@ -497,10 +512,10 @@ def injectionlog(request):
 
     template ='InjectionLog/injlog.html'
     page="log"
-    
+
     if "sharable" not in request.GET:
         sharable = False
-        
+
         injections = InjectionLog.objects.filter(
             owner=request.user).filter(
             cat_name=cat).filter(
@@ -512,27 +527,27 @@ def injectionlog(request):
             cat_name=cat).filter(
             active=True).annotate(
             inj_date = ExpressionWrapper(Cast(F('injection_time'), DateField())-F('cat_name__treatment_start'),output_field=DurationField())).order_by('injection_time')
-            
+
     if "export" in request.GET:
         """
         Export the log files as a csv
         """
-        
+
         # Generate a sequence of rows. The range is based on the maximum number of
         # rows that can be handled by a single sheet in most spreadsheet
         # applications.
         csv_file = [[
             "GS Brand",
-            "Cat Weight", 
-            "Units", 
+            "Cat Weight",
+            "Units",
             "Injection Date",
-            "Injection Amount (mL)", 
+            "Injection Amount (mL or pills)",
             "Cat Behavior (1-5)",
             "Injection Notes",
             "Gaba Dose (mL)",
             "Other Notes",
             "New Symptoms"]]
-            
+
         for row in injections:
             csv_file.append([
                 row.gs_brand,
@@ -543,10 +558,10 @@ def injectionlog(request):
                 row.cat_behavior_today,
                 row.injection_notes,
                 row.gaba_dose,
-                row.other_notes,	
-                row.new_symptom            
+                row.other_notes,
+                row.new_symptom
             ])
-        
+
         date_format = datetime.now()
         filename="InjectionLog_%s_%s.csv" % (cat.name, date_format.strftime("%Y-%m-%d"))
         pseudo_buffer = Echo()
@@ -555,8 +570,8 @@ def injectionlog(request):
                                         content_type="text/csv")
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
-    
-        
+
+
     return render(request, template, {"page":page,"injections":injections, "local_time":local_time, "validcats":validcats, "cat":cat, "sharable":sharable})
 
 def change_record(request):
@@ -569,14 +584,14 @@ def change_record(request):
         record.injection_notes = request.POST["injection_notes"]
         record.other_notes = request.POST["other_notes"]
         record.gaba_dose = request.POST["gaba_dose"]
-        
+
         record.save()
         return redirect("/log/?message=update&selectedcat=%s" % request.POST["cat_name"])
-        
-        
+
+
 @login_required
 def observation_log(request):
-    
+
     # Define a local timezone from the IP Address
     tz = get_local_timezone(request)
     timezone.activate(tz)
@@ -732,24 +747,90 @@ def track_warrior(request):
 
 
     return render(request, "InjectionLog/tracker.html",{"tracking":tracking})
-    
-def vet_info(request):
+
+def data_analysis(request):
     """
     Generate weight and dosing tables for cats
     """
-    ...
-    
-def data_analysis(request):
+
+    filename = os.path.dirname(settings.DATABASES['default']['NAME'])+"/data_output.txt"
+    with open(filename) as json_file:
+        data = json.load(json_file)
+
+    fip_div = data["fip_stats"]["graph"]
+    total_cats = data["fip_stats"]["total_cats"]
+    wt_div = data["weight"]["graph"]
+    age_div = data["summary"]["graph"]
+    duration_div = data["distribution"]["graph"]
+    past_initial_treatment = data["distribution"]["total_cats"]
+
+
+    return render(request, "InjectionLog/data_analysis.html",{"page":"data","duration_fig":duration_div, "84_cats":past_initial_treatment,"age_fig":age_div,"fip_fig":fip_div,"wt_fig":wt_div, "dry_cases":total_cats["0"],"wet_cases":total_cats["1"]})
+
+def vet_info(request):
+    return render(request,"InjectionLog/vet_info.html",{"page":"vetinfo"})
+
+def brands(request):
+    return render(request,"InjectionLog/brands.html",{"page":"brands"})
+
+def error_create(requests):
+    return render(request, "InjectionLog/error_create.html")
+
+def costs(request):
     """
     View to do the number crunching
     """
-    # Number of cats in treatment
-    # Number of cured cats
-    # Number of cats with relapse
-    # Average weight gains per cat
-    
-    ...
-    
+    filename = os.path.dirname(settings.DATABASES['default']['NAME'])+"/data_output.txt"
+    with open(filename) as json_file:
+        data = json.load(json_file)
+
+    model = data["weight"]["model"]
+
+    ints = model["ints"]
+    daily_price = model["daily_price"]
+    stwt = model["stwt"]
+    mult = model["mult"]
+    age  = model["age"]
+
+    total_cost = 0
+    total_vol  = 0
+
+    table = []
+
+    if "CatWeight" and "FIPType" and "CatAge" in request.GET:
+
+        if request.GET["FIPType"]=="dry":
+            dosage=10
+        else:
+            dosage=6
+
+        wt = float(request.GET["CatWeight"])
+        ct_age = float(request.GET["CatAge"])
+        for i in range(85):
+            calc_wt = round((mult*i+stwt*wt+ints+1+age*ct_age)*wt,1)
+            if calc_wt>wt:
+                use_wt = calc_wt
+            else:
+                use_wt = wt
+            if i>0:
+                amount = round(use_wt/2.2*dosage/15,2)
+                price = round(daily_price*use_wt/2.2*dosage,0)
+            else:
+                price  = 0
+                amount = 0
+
+            total_vol  = total_vol + amount
+            total_cost = total_cost + price
+            table.append(
+                {"price": "$%.2f" % price,
+                "weight":use_wt,
+                "amount":"%.2f mL" % amount
+                })
+
+    params = "Percent Change from Start = %f x [treatment day] + %f x [starting weight] + %f [cat age]" % (mult,stwt, age)
+
+    return render(request, "InjectionLog/costs.html",{"page":"costs", "model":mult, "amount":math.ceil(total_vol/5/.96), "loop":table,"total_cost":"${:.2f}".format(round(total_cost/100,0)*100), "params":params})
+
 def get_local_timezone(request):
     import requests
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -759,11 +840,11 @@ def get_local_timezone(request):
         ip = request.META.get('REMOTE_ADDR')
     if ip == "127.0.0.1":
         ip = "72.105.141.28"
-    try:    
+    try:
         ipinfo = requests.get('http://ip-api.com/json/%s' % ip)
         ipinfo = ipinfo.json()
         tz = ipinfo["timezone"]
     except:
         tz = "UTC"
-    
+
     return tz

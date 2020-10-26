@@ -1,0 +1,104 @@
+{% extends 'InjectionLog/nologin.html' %}
+{% load groupfilter %}
+{% block maincontent %}
+
+<main role="main">
+  <div class="container">
+    <div class="alert alert-danger">
+      <small>These values are <strong>rough approximations</strong> based on aggregate data from this website. Actual doses, weight gain, and cost will be different as treatment continues. Please work with an admin or vet to better understand your specific case.</small>
+    </div>
+    <div class="alert alert-primary">
+      <form action="" method="GET">
+        <div class="container">
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <div class="row">
+                  <label for="CatWeight">Cat's Starting Weight (lb)</label>
+                </div>
+                <div class="row">
+                  <input class="form-control" required type="number" step="0.1" value="{{request.GET.CatWeight}}" name="CatWeight">
+                </div>
+                <div class="row">
+                  <label for="CatAge">Cat's Age (years)</label>
+                </div>
+                <div class="row">
+                  <input class="form-control" required type="number" step="0.1" value="{{request.GET.CatAge}}" name="CatAge">
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="row">
+                  <label for="FIPType">Type of FIP</label>
+                </div>
+                <div class="row">
+                  <select required name="FIPType" class="form-control">
+                    <option value="">Select FIP-Type</option>
+                    <option {% if request.GET.FIPType == "wet" %} Selected {% endif %}value="wet">Wet FIP</option>
+                    <option {% if request.GET.FIPType == "dry" %} Selected {% endif %}value="dry">Dry FIP</option>
+                  </select>
+                </div>
+              </div>
+          </div>
+          <div class="form-row mb-3">
+              <input type="submit" class="btn btn-success" role="button" value="Calculate">
+          </div>
+          <div class="row" {% if request.GET.FIPType %} hidden {% endif %}>
+            <p class="text-danger">Please enter a weight and an FIP type to get started</p>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="alert alert-success" {% if not request.GET.FIPType %} hidden {% endif %}>
+      <p>Estimated Cost for GS-441524: {{total_cost}}
+      <p>Estimated number of 5 mL bottles: {{amount}}
+    </div>
+
+<div class="alert alert-warning" {% if not request.GET.FIPType %} hidden {% endif %}>
+  <table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Day #</th>
+      <th scope="col">Estimated Weight (lb)</th>
+      <th scope="col">Estimated Injection Amount (mL)</th>
+      <th scope="col">Estimated Cost (USD)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for value in loop %}
+    <tr>
+      <th scope="row">{{ forloop.counter0 }}</th>
+      <td>{{value.weight}}</td>
+      <td>{{value.amount}}</td>
+      <td>{{value.price}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div class="alert alert-info">
+  <div class="row">
+  <strong>Notes:</strong>
+  </div>
+  <div class="row">
+
+    <li><small>Cost estimates are based on the average cost for brands recorded
+      on this website.  Dosage is consistent with common values used for treating wet
+      and dry FIP.</small></li>
+  </div>
+  <div class="row">
+
+    <li><small> Weight gain is estimated from <a href="/data">real data</a> that has been logged on this website. The following equation has been fit to the data:</small></li>
+  </div>
+  <div class="row">
+    <div class="col-md-1">
+    </div>
+    <div class="col">
+    <small>{{params}}</small>
+    </div>
+  </div>
+</div>
+</div>
+
+  </div>
+</main>
+
+
+{% endblock %}

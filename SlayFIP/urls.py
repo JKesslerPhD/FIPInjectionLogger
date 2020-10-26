@@ -46,5 +46,10 @@ urlpatterns = [
     path("upload_cbc/",views.upload_file),
     path("trackwarrior/",views.track_warrior),
     path("change_record/",views.change_record),
+    path("costs/",views.costs),
+    path("vetinfo/",views.vet_info),
+    path("data/",views.data_analysis),
+    path("brands/",views.brands),
     path('accounts/', include('django.contrib.auth.urls')),
+    path("error_create/",views.error_create),
 ]

@@ -2,3 +2,5 @@ django
 django-bootstrap4
 django-crispy-forms
 django-googledrive-storage
+pandas
+plotly

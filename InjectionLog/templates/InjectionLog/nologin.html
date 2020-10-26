@@ -16,6 +16,31 @@
 				 {% endif %}
 					 <a class="nav-link" href="/information">Information <span class="sr-only">(current)</span></a>
 				 </li>
+
+				 {% if page == "costs" %}
+				 <li class="nav-item active">
+				 {% else %}
+				 <li class="nav-item">
+				 {% endif %}
+					 <a class="nav-link" href="/costs">Estimate Costs <span class="sr-only">(current)</span></a>
+				 </li>
+				 {% if page == "vetinfo" %}
+				 <li class="nav-item active">
+				 {% else %}
+				 <li class="nav-item">
+				 {% endif %}
+					 <a class="nav-link" href="/vetinfo">Info for Vets <span class="sr-only">(current)</span></a>
+				 </li>
+
+				 {% if page == "data" %}
+				 <li class="nav-item active">
+				 {% else %}
+				 <li class="nav-item">
+				 {% endif %}
+					 <a class="nav-link" href="/data">Data Analysis <span class="sr-only">(current)</span></a>
+				 </li>
+
+
 				 {% if page == "login" %}
 	       <li class="nav-item active">
 	       {% else %}

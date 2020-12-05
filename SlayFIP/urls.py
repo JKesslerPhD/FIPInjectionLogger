@@ -51,5 +51,7 @@ urlpatterns = [
     path("data/",views.data_analysis),
     path("brands/",views.brands),
     path('accounts/', include('django.contrib.auth.urls')),
+    path("fix_timezone_error",views.fix_timezone),
+    path("about/",views.about),
     path("error_create/",views.error_create),
 ]

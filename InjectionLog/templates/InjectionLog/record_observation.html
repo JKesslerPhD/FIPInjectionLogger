@@ -31,8 +31,7 @@
         <div class="container">
           <div class="form-text">Observtion Day</div>
             <div class="for-row col-xsm-6 mb-3">
-              {% now 'h:i A' as my_time %}
-              <input name="observation_date" class="form-control" type="date" value="{% if request.GET.inj_date %}{{request.GET.inj_date}}{% else %}{% now 'Y-m-d' %}{% endif %}" max="{{now|max_time|date:'Y-m-d'}}" id="observation_date">
+              <input name="observation_date" style="width:200px;" type="text" required data-zdp_readonly_element="false" class="form-control yearpicker" value="{% now 'Y-m-d' %}" id="observation_date">
             </div>
             <hr class="my-3"/>
             <div class="form-row">
@@ -41,46 +40,40 @@
               </div>
             </div>
             <div class="container">
-              <div class="row">
-                <div class="col-1">
+              <div class="row" style="width:300px">
+                <div class="col" style="text-align:left">
                   <small class="form-text">
                   I'm worried
                   </small>
                 </div>
-                <div class="col-1"><p></div>
-                <div class="col-1"><p></div>
-                <div class="col-1"><p></div>
-                <div class="col-1">
+                <div class="col" style="text-align:right">
                   <small class="form-text">
                   Acts cured!
                   </small>
                 </div>
-                <div class="col-1"><p></div>
               </div>
-              <div class="row">
-                <div class="col-1 form-check form-check-inline">
+              <div class="row" style="margin-left:40px">
+                <div class="form-check form-check-inline">
                   <input class="form-check-input" {% if request.GET.cat_rating == "1" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio1" value="1" required>
-                  <label class="form-check-label" for="inlineRadio1">1</label>
+                  <label onclick="" class="form-check-label" for="inlineRadio1">1</label>
                 </div>
-                <div class="col-1 form-check form-check-inline">
+                <div  class="form-check form-check-inline">
                   <input class="form-check-input" {% if request.GET.cat_rating == "2" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio2" value="2" required>
-                  <label class="form-check-label" for="inlineRadio2">2</label>
+                  <label onclick="" class="form-check-label" for="inlineRadio2">2</label>
                 </div>
-                <div class="col-1 form-check form-check-inline">
+                <div class="form-check form-check-inline">
                   <input class="form-check-input" {% if request.GET.cat_rating == "3" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio3" value="3" required>
-                  <label class="form-check-label" for="inlineRadio3">3</label>
+                  <label onclick="" class="form-check-label" for="inlineRadio3">3</label>
                 </div>
-                <div class="col-1 form-check form-check-inline">
+                <div class="form-check form-check-inline">
                   <input class="form-check-input" {% if request.GET.cat_rating == "4" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio4" value="4" required>
-                  <label class="form-check-label" for="inlineRadio3">4</label>
+                  <label onclick="" class="form-check-label" for="inlineRadio4">4</label>
                 </div>
-                <div class="col-1 form-check form-check-inline">
-                  <input class="form-check-input" {% if request.GET.cat_rating == "5" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio3" value="5" required>
-                  <label class="form-check-label" for="inlineRadio3">5</label>
-                  <span class="container invalid-feedback">
-                    Enter a qualitative measure
-                  </span>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" {% if request.GET.cat_rating == "5" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio5" value="5" required>
+                  <label onclick="" class="form-check-label" for="inlineRadio5">5</label>
                 </div>
+
             </div>
           </div>
           <div class="form-row col-md-6 mb-3">
@@ -134,9 +127,12 @@
 </main>
 
 <script>
-var today = new Date().toISOString();
-document.getElementById("injectiondate").setAttribute('min', today);
+$('input.yearpicker').Zebra_DatePicker({
+     direction: false,
+     view: 'years'
+   });
 </script>
+
 
 
 

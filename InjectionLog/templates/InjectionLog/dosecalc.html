@@ -88,7 +88,7 @@
         </div>
         {% if page == "dose" %}
         <div class="col">
-          <input type="submit" class="btn btn-success" role="button" value="Step 2 - Injection">
+          <input type="submit" class="btn btn-success" role="button" value="Step 2 - Record Medication">
         </div>
         {% endif %}
       </div>
@@ -122,7 +122,11 @@
             <div class="for-row col-xsm-6 mb-3">
               {% load tz %}
               {% timezone local_time %}
-              <input name="inj_date" class="form-control" type="datetime-local" value="{% if request.GET.inj_date %}{{request.GET.inj_date}}{% else %}{% now 'Y-m-d\TH:i' %}{% endif %}" max="{{now|max_time|date:'Y-m-d\TH:i'}}" id="injectiondate">
+
+              <!--<input name="inj_date" class="form-control" type="datetime-local" value="{% if request.GET.inj_date %}{{request.GET.inj_date}}{% else %}{% now 'Y-m-d\TH:i' %}{% endif %}" max="{{now|max_time|date:'Y-m-d\TH:i'}}" id="injectiondate">-->
+              <span class="Zebra_DatePicker_Icon_Wrapper" style="display: block; position: relative; float: none; top: auto; right: auto; bottom: auto; left: auto; margin: 0px; padding: 0px; width: 300px;">
+                <input name="inj_date" class="form-control datepicker bg-white" data-zdp_readonly_element="true" type="text" style="position: relative; float: none; top: auto; right: auto; bottom: auto; left: auto; margin: 0px; padding-right: 40px;" value="{% if request.GET.inj_date %}{{request.GET.inj_date}}{% else %}{% now 'Y-m-d h:i A' %}{% endif %}" id="datepicker">
+              </span
               {% endtimezone %}
 
             </div>
@@ -137,46 +141,40 @@
               </div>
             </div>
             <div class="container">
-              <div class="row">
-                <div class="col-1">
+              <div class="row" style="width:300px">
+                <div class="col" style="text-align:left">
                   <small class="form-text">
                   I'm worried
                   </small>
                 </div>
-                <div class="col-1"><p></div>
-                <div class="col-1"><p></div>
-                <div class="col-1"><p></div>
-                <div class="col-1">
+                <div class="col" style="text-align:right">
                   <small class="form-text">
                   Acts cured!
                   </small>
                 </div>
-                <div class="col-1"><p></div>
               </div>
-              <div class="row">
-                <div class="col-1 form-check form-check-inline">
+              <div class="row" style="margin-left:40px">
+                <div class="form-check form-check-inline">
                   <input class="form-check-input" {% if request.GET.cat_rating == "1" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio1" value="1" required>
-                  <label class="form-check-label" for="inlineRadio1">1</label>
+                  <label onclick="" class="form-check-label" for="inlineRadio1">1</label>
                 </div>
-                <div class="col-1 form-check form-check-inline">
+                <div  class="form-check form-check-inline">
                   <input class="form-check-input" {% if request.GET.cat_rating == "2" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio2" value="2" required>
-                  <label class="form-check-label" for="inlineRadio2">2</label>
+                  <label onclick="" class="form-check-label" for="inlineRadio2">2</label>
                 </div>
-                <div class="col-1 form-check form-check-inline">
+                <div class="form-check form-check-inline">
                   <input class="form-check-input" {% if request.GET.cat_rating == "3" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio3" value="3" required>
-                  <label class="form-check-label" for="inlineRadio3">3</label>
+                  <label onclick="" class="form-check-label" for="inlineRadio3">3</label>
                 </div>
-                <div class="col-1 form-check form-check-inline">
+                <div class="form-check form-check-inline">
                   <input class="form-check-input" {% if request.GET.cat_rating == "4" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio4" value="4" required>
-                  <label class="form-check-label" for="inlineRadio3">4</label>
+                  <label onclick="" class="form-check-label" for="inlineRadio4">4</label>
                 </div>
-                <div class="col-1 form-check form-check-inline">
-                  <input class="form-check-input" {% if request.GET.cat_rating == "5" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio3" value="5" required>
-                  <label class="form-check-label" for="inlineRadio3">5</label>
-                  <span class="container invalid-feedback">
-                    Enter a qualitative measure
-                  </span>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" {% if request.GET.cat_rating == "5" %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio5" value="5" required>
+                  <label onclick="" class="form-check-label" for="inlineRadio5">5</label>
                 </div>
+
             </div>
           </div>
           <hr class="my-3">
@@ -252,10 +250,17 @@
 </main>
 
 <script>
-var today = new Date().toISOString();
-document.getElementById("injectiondate").setAttribute('min', today);
-</script>
+$(document).ready(function(){
+  $('a[href="#"]').click(function(e) {
+    e.preventDefault();
+  });
+  $('input.datepicker').Zebra_DatePicker({
+    format: 'Y-m-d h:i A',
+    direction: false
+  });
 
+});
+</script>
 
 {% endif %}
 

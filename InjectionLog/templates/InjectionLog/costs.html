@@ -2,6 +2,12 @@
 {% load groupfilter %}
 {% block maincontent %}
 
+{% if request.GET.error %}
+<div class="alert alert-danger">
+  {{request.GET.error}}
+</div>
+{% endif %}
+
 <main role="main">
   <div class="container">
     <div class="alert alert-danger">
@@ -42,7 +48,7 @@
               <input type="submit" class="btn btn-success" role="button" value="Calculate">
           </div>
           <div class="row" {% if request.GET.FIPType %} hidden {% endif %}>
-            <p class="text-danger">Please enter a weight and an FIP type to get started</p>
+            <p class="text-danger">Please enter a weight, age, and an FIP type to get started</p>
           </div>
         </div>
       </form>

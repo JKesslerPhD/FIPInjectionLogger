@@ -3,6 +3,7 @@
   <head>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-174199416-1"></script>
+
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -13,7 +14,8 @@
 
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1">
+
   <meta name="HandheldFriendly" content="true">
   <link rel="apple-touch-icon" sizes="76x76" href="{% static "favicon/apple-touch-icon.png" %}">
   <link rel="icon" type="image/png" sizes="32x32" href="{% static "favicon/favicon-32x32.png" %}">
@@ -29,6 +31,7 @@
   <meta property="og:image:alt" content="Black outline of a cat">
   <meta property="og:description" content="FIP is no longer a terminal diagnosis for cats. This site helps track your cat's progress through treatment.">
   <title>FIP Medication Log</title>
+    {% load groupfilter %}
     {# Load the tag library #}
     {% load bootstrap4 %}
     {% bootstrap_css %}
@@ -39,6 +42,7 @@
     {# Load CSS and JavaScript #}
 
     {% bootstrap_javascript jquery='full' %}
+
 
 
 
@@ -58,7 +62,9 @@
      }
     </script>
 
-
+    <script src="{% static 'zebra_datepicker.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/bootstrap/zebra_datepicker.min.css' %}">
+    <script src="{% static "html2canvas.min.js" %}"></script>
 
   </head>
   <body>
@@ -71,7 +77,7 @@
       <p>
         <div class="alert alert-light">
           <div class="row">
-            Site Resources:
+            <h5>Site Resources</h5>
           </div>
           <div class="row mb-3">
             <div class="col">
@@ -81,19 +87,41 @@
               <li><a href="/costs">Treatment Cost Estimator</a></li>
             </div>
             <div class="col">
-              <li><a href="/vetinfo">Treatment Info</a></li>
+              <li><a href="/vetinfo">Treatment Information</a></li>
             </div>
+          </div>
+          <div class="row">
+            <small class="text-muted">More information <a href="/about">about this website</a>.</small>
           </div>
           <div class="row">
             <small class="text-muted">This software is currently in development &mdash; additional functionality may suddenly appear (<a href="https://github.com/JKesslerPhD/FIPInjectionLogger/issues">submit a bug</a>).</small>
           </div>
         </div>
       </div>
+
     <hr>
+    <div class="row bg-light border border-secondary" style="padding:10px;">
+      <div class="row">
+        <div class="col" style="margin-left:20px;">
+          <a href="https://www.zenbycat.org/give-to-fip-research" target="_new">Help Fund FIP Research &raquo;</a>
+          <small>A better solution for treating FIP cats is needed -- one that doesn't take 84 days and cost an arm-and-a-leg.
+          We need people like you to help fund research into better solutions.  ZenByCat funds FIP R&D efforts, and is aiming
+          to have over 5,000 monthly contributions of $10 or more.  Please contribute what you can.</small>
+
+
+
+        </div>
+      </div>
+      <div class="row">
+
+      </div>
+  </div>
+  <hr>
     <p>&copy; FIPLog 2020
     {% if page == "home" or page == "information" %}
     <p><small class="text-muted"><a href="https://icons8.com/icon/121371/cat">All Cat icons by Icons8</a></small>
-        {% endif %}
+  {% endif %}
   </footer>
   </body>
+
 </html>

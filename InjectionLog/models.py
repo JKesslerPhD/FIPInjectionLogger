@@ -32,6 +32,11 @@ class Cats(models.Model):
     test_cat = models.BooleanField(default=False)
     sharable = models.CharField(max_length=32, null=True)
     cured = models.BooleanField(default=False)
+
+class FixTimezone(models.Model):
+    owner = models.ForeignKey(User, on_delete = models.PROTECT)
+    fixed = models.BooleanField(default=False)
+    timezone = models.CharField(max_length=64, default="UTC")
     
 
 

@@ -40,6 +40,14 @@
 					 <a class="nav-link" href="/data">Data Analysis <span class="sr-only">(current)</span></a>
 				 </li>
 
+				 {% if page == "about" %}
+				 <li class="nav-item active">
+				 {% else %}
+				 <li class="nav-item">
+				 {% endif %}
+					 <a class="nav-link" href="/about">About <span class="sr-only">(current)</span></a>
+				 </li>
+
 
 				 {% if page == "login" %}
 	       <li class="nav-item active">

@@ -1,6 +1,10 @@
 {% extends 'InjectionLog/index.html' %}
 {% load groupfilter %}
 {% block maincontent %}
+{% load tz %}
+{% timezone local_time %}
+<!doctype html>
+
 <div class="container">
 <form action="/log/" method="GET">
   <div class="alert alert-dark">
@@ -19,8 +23,14 @@
   </div>
 </form>
 </div>
+<div class="alert alert-warning">
+  The website has been undergoing some updates to better account for timezones. If you notice a problem, please report it using the "Submit a bug" link at the bottom of the page.
+  Bugs will be fixed as soon as possible.
+
+
+</div>
 <main role="main">
-<div class="table-responsive">
+<div class="table-responsive" style="overflow-x: scroll;">
   <table class="table table-striped">
     <thead>
       <tr>
@@ -39,13 +49,14 @@
     <tbody>
     {% for injection in injections %}
       <tr>
-        <td id="{{injection.inj_date|duration_days}}"><a href="#{{injection.inj_date|duration_days}}" data-toggle="tooltip" title="{{injection.inj_date|duration_days}} - {{ injection.injection_time|date:'h:i a'}} ">{{ injection.injection_time|date:'m/d/Y'}}</a> </td>
+        {% with treatment_start|date:'m/d/Y'|add:"|"|add:local_time as start_string %}
+        <td id="Day {{injection.injection_time|getday:start_string}}"><a href="#" data-toggle="tooltip" title="Day {{injection.injection_time|getday:start_string}} - {{ injection.injection_time|date:'h:i a'}} ">{{ injection.injection_time|date:'m/d/Y'}}</a> </td>
+        {% endwith %}
         <td>{{ injection.cat_weight }} {{injection.wt_units}}</td>
         <td>{{ injection.cat_behavior_today}}</td>
-        <td>{{ injection.new_symptom}}
-        {{injection.injection_time}}</td>
+        <td>{{ injection.new_symptom}}</td>
         <td>
-          <a href="#{{injection.inj_date|duration_days}}" data-toggle="tooltip" title="{{injection.gs_brand}}">{{ injection.injection_amount }}</a>
+          <a href="#" data-toggle="tooltip" title="{{injection.gs_brand}}">{{ injection.injection_amount }}</a>
 
         </td>
         <td>{{ injection.gaba_dose }}</td>
@@ -68,157 +79,6 @@
                 <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
               </svg>
             </button>
-
-            <div class="modal fade" id="bw-modal_{{forloop.counter}}">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Alter Record {{ injection.injection_time|date:'m/d/Y'}}</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                          <span aria-hidden="true">&times;</span>
-                        </button>
-                      </div>
-                      <form class="needs-validation" novalidate action="/change_record/" method="POST" id="change_record" name="change_record" enctype="multipart/form-data">
-                      <div class="modal-body">
-
-                          {% csrf_token %}
-                          <div class="alert alert-info">
-                            <small>If you need to make substantial changes, please delete the record and add a new one.</small>
-                          </div>
-                          <input type="hidden" name="cat_name" value="{{cat.id}}">
-                          <input type="hidden" name="inj_id" value="{{injection.id}}">
-                          <div class="form-row">
-                            <div class="col-md-6 mb-3">
-                              <div class="form-group">
-                                <div class="form-row">
-                                    <label for="injectiondate" class="control-label">Injection Date</label>
-                                    {% load tz %}
-                                    {% timezone local_time %}
-                                    <input name="inj_date" class="form-control" type="datetime-local" value="{{injection.injection_time|date:'Y-m-d\TH:i'}}" max="{{now|max_time|date:'Y-m-d\TH:i'}}" id="injectiondate">
-                                    {% endtimezone %}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="form-row">
-
-                              <div class="form-group">
-
-                                <div class="form-row">
-                                  <div id="behavior" name="behavior_note" class="form-text">
-                                    How did your cat do today?
-                                  </div>
-                                </div>
-                                <div class="form-row">
-                                  <div class="col-1">
-                                    <small class="form-text">
-                                    I'm worried
-                                    </small>
-                                  </div>
-                                  <div class="col-6"><p></div>
-                                  <div class="col-1">
-                                    <small class="form-text">
-                                    Acts cured!
-                                    </small>
-                                  </div>
-                                </div>
-                                <div class="form-row">
-                                  <div class="col-1 form-check form-check-inline">
-                                    <input class="form-check-input" {% if injection.cat_behavior_today == 1 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio1" value="1" required>
-                                    <label class="form-check-label" for="inlineRadio1">1</label>
-                                  </div>
-                                  <div class="col-1 form-check form-check-inline">
-                                    <input class="form-check-input" {% if injection.cat_behavior_today == 2 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio2" value="2" required>
-                                    <label class="form-check-label" for="inlineRadio2">2</label>
-                                  </div>
-                                  <div class="col-1 form-check form-check-inline">
-                                    <input class="form-check-input" {% if injection.cat_behavior_today == 3 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio3" value="3" required>
-                                    <label class="form-check-label" for="inlineRadio3">3</label>
-                                  </div>
-                                  <div class="col-1 form-check form-check-inline">
-                                    <input class="form-check-input" {% if injection.cat_behavior_today == 4 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio4" value="4" required>
-                                    <label class="form-check-label" for="inlineRadio3">4</label>
-                                  </div>
-                                  <div class="col-1 form-check form-check-inline">
-                                    <input class="form-check-input" {% if injection.cat_behavior_today == 5 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio3" value="5" required>
-                                    <label class="form-check-label" for="inlineRadio3">5</label>
-                                    <span class="container invalid-feedback">
-                                      Enter a qualitative measure
-                                    </span>
-                                  </div>
-                              </div>
-                              </div>
-                            </div>
-                           <div class="row">
-                             <div class="col-md-6 mb-3">
-                               <div class="form-group">
-                                <div class="form-row">
-                                  <label for="id_dose" class="control-label">Dose Given</label>
-                                  <div class="input-group">
-                                    <input class="form-control" name="injection_amount" value="{{ injection.injection_amount }}"></input>
-                                    <div class="form-group-append">
-                                      <span class="input-group-text">mL</span>
-                                    </div>
-                                  </div>
-                                 </div>
-                               </div>
-                             </div>
-                           </div>
-                           <div class="row">
-                             <div class="col-md-6 mb-3">
-                               <div class="form-group">
-                                <div class="form-row">
-                                  <label for="id_gaba" class="control-label">Gabapentin Given</label>
-                                  <div class="input-group">
-                                    <input class="form-control" name="gaba_dose" value="{{ injection.gaba_dose }}"></input>
-                                    <div class="form-group-append">
-                                      <span class="input-group-text">mg</span>
-                                    </div>
-                                  </div>
-                                 </div>
-                               </div>
-                             </div>
-                           </div>
-
-                           <div class="row">
-                             <div class="col-md-6 mb-3">
-                               <div class="form-group">
-                                 <label for="id_new_symptoms" class="control-label">New Symptoms</label>
-                                 <textarea {% if request.GET.sharable %} disabled {% endif %} class="form-control" name="new_symptom" id="id_new_symptoms">{{ injection.new_symptom}}</textarea>
-
-                               </div>
-                             </div>
-                           </div>
-
-
-                           <div class="row">
-                             <div class="col-md-6 mb-3">
-                               <div class="form-group">
-                                 <label for="id_injection_notes" class="control-label">Injection Notes</label>
-                                 <textarea {% if request.GET.sharable %} disabled {% endif %} class="form-control" name="injection_notes" id="id_inj_notes">{{ injection.injection_notes}}</textarea>
-
-                               </div>
-                             </div>
-                           </div>
-
-                           <div class="row">
-                             <div class="col-md-6 mb-3">
-                               <div class="form-group">
-                                 <label for="id_other_notes" class="control-label">Other Notes</label>
-                                 <textarea {% if request.GET.sharable %} disabled {% endif %} class="form-control" name="other_notes" id="id_other_notes">{{ injection.other_notes}}</textarea>
-
-                               </div>
-                             </div>
-                           </div>
-                      </div>
-                      <div class="modal-footer">
-                          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                          <button id="btnSubmitModal" {% if request.GET.sharable %} disabled {% endif %} type="submit" class="btn btn-info">Save Changes</button>
-                      </div>
-                    </form>
-                    </div>
-                  </div>
-              </div>
           </div>
           {% else %}
           _
@@ -231,10 +91,165 @@
 </div>
 <div class="col"><a href="?selectedcat={{request.GET.selectedcat}}{% if request.GET.sharable %}&sharable={{request.GET.sharable}}{% endif %}&export">Export as CSV</a></div>
 </main>
+{% if not sharable %}
+{% for injection in injections %}
+<div class="modal fade" id="bw-modal_{{forloop.counter}}">
+    <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Alter Record {{ injection.injection_time|date:'m/d/Y'}}</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form class="needs-validation" novalidate action="/change_record/" method="POST" enctype="multipart/form-data">
+          <div class="modal-body">
+
+              {% csrf_token %}
+              <div class="alert alert-info">
+                <small>If you need to make substantial changes, please delete the record and add a new one.</small>
+              </div>
+              <input type="hidden" name="cat_name" value="{{cat.id}}">
+              <input type="hidden" name="inj_id" value="{{injection.id}}">
+              <div class="form-row">
+                <div class="col-md-6 mb-3">
+                  <div class="form-group">
+                    <div class="form-row">
+                        <label for="injectiondate_{{injection.id}}" class="control-label">Injection Date</label>
+                        <span class="Zebra_DatePicker_Icon_Wrapper" style="display: block; position: relative; float: none; top: auto; right: auto; bottom: auto; left: 0px; margin: 0px; padding: 0px; width: 100%;">
+                          <input name="inj_date" class="form-control datepicker bg-white" data-zdp_readonly_element="true" type="text" style="position: relative; float: none; top: auto; right: auto; bottom: auto; left: 0px; margin: 0px; padding-right: 0px; width: 300px;" value="{{injection.injection_time|date:'Y-m-d H:i A'}}" id="injectiondate_{{injection.id}}">
+                        </span>
+
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="container">
+                <div class="row" style="width:300px">
+                  <div class="col" style="text-align:left">
+                    <small class="form-text">
+                    I'm worried
+                    </small>
+                  </div>
+                  <div class="col" style="text-align:right">
+                    <small class="form-text">
+                    Acts cured! {{injection.cat_behavior_today}}
+                    </small>
+                  </div>
+                </div>
+                <div class="row" style="margin-left:40px">
+
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" {% if injection.cat_behavior_today == 1 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio1" value="1" required>
+                    <label onclick="" class="form-check-label" for="inlineRadio1">1</label>
+                  </div>
+                  <div  class="form-check form-check-inline">
+                    <input class="form-check-input" {% if injection.cat_behavior_today == 2 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio2" value="2" required>
+                    <label onclick="" class="form-check-label" for="inlineRadio2">2</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" {% if injection.cat_behavior_today == 3 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio3" value="3" required>
+                    <label onclick="" class="form-check-label" for="inlineRadio3">3</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" {% if injection.cat_behavior_today == 4 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio4" value="4" required>
+                    <label onclick="" class="form-check-label" for="inlineRadio4">4</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" {% if injection.cat_behavior_today == 5 %} checked {% endif %} type="radio" name="cat_rating" id="inlineRadio5" value="5" required>
+                    <label onclick="" class="form-check-label" for="inlineRadio5">5</label>
+                  </div>
+
+              </div>
+            </div>
+               <div class="row">
+                 <div class="col-md-6 mb-3">
+                   <div class="form-group">
+                    <div class="form-row">
+                      <label for="id_dose" class="control-label">Dose Given</label>
+                      <div class="input-group">
+                        <input class="form-control" name="injection_amount" value="{{ injection.injection_amount }}"></input>
+                        <div class="form-group-append">
+                          <span class="input-group-text">mL</span>
+                        </div>
+                      </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+               <div class="row">
+                 <div class="col-md-6 mb-3">
+                   <div class="form-group">
+                    <div class="form-row">
+                      <label for="id_gaba" class="control-label">Gabapentin Given</label>
+                      <div class="input-group">
+                        <input class="form-control" name="gaba_dose" value="{{ injection.gaba_dose }}"></input>
+                        <div class="form-group-append">
+                          <span class="input-group-text">mg</span>
+                        </div>
+                      </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+
+               <div class="row">
+                 <div class="col-md-6 mb-3">
+                   <div class="form-group">
+                     <label for="id_new_symptoms" class="control-label">New Symptoms</label>
+                     <textarea {% if request.GET.sharable %} disabled {% endif %} class="form-control" name="new_symptom" id="id_new_symptoms">{{ injection.new_symptom}}</textarea>
+
+                   </div>
+                 </div>
+               </div>
+
+
+               <div class="row">
+                 <div class="col-md-6 mb-3">
+                   <div class="form-group">
+                     <label for="id_injection_notes" class="control-label">Injection Notes</label>
+                     <textarea {% if request.GET.sharable %} disabled {% endif %} class="form-control" name="injection_notes" id="id_inj_notes">{{ injection.injection_notes}}</textarea>
+
+                   </div>
+                 </div>
+               </div>
+
+               <div class="row">
+                 <div class="col-md-6 mb-3">
+                   <div class="form-group">
+                     <label for="id_other_notes" class="control-label">Other Notes</label>
+                     <textarea {% if request.GET.sharable %} disabled {% endif %} class="form-control" name="other_notes" id="id_other_notes">{{ injection.other_notes}}</textarea>
+
+                   </div>
+                 </div>
+               </div>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button {% if request.GET.sharable %} disabled {% endif %} type="submit" class="btn btn-info">Save Changes</button>
+          </div>
+        </form>
+        </div>
+      </div>
+  </div>
+{% endfor %}
+{% endif %}
+
 <script>
 $(document).ready(function(){
+  $('a[href="#"]').click(function(e) {
+    e.preventDefault();
+  });
   $('[data-toggle="tooltip"]').tooltip();
-});
-</script>
+  $('input.datepicker').Zebra_DatePicker({
+    direction:false,
+    format: 'Y-m-d h:i A'
+  });
 
+});
+
+
+</script>
+{% endtimezone %}
 {% endblock %}

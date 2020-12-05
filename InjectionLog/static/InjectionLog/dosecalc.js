@@ -93,7 +93,7 @@ function symptom_trigger()
     // Loop over them and prevent submission
     var validation = Array.prototype.filter.call(forms, function(form) {
       form.addEventListener('submit', function(event) {
-        if (form.checkValidity() === false) {
+        if ((form.checkValidity() === false) || (document.getElementById("CatBirthday").value == '')) {
           event.preventDefault();
           event.stopPropagation();
           document.getElementById('validation_message').style.display="block";
@@ -109,6 +109,7 @@ function symptom_trigger()
       }, false);
 
       form.addEventListener('change', function(event) {
+        require_entry();
         if (form.checkValidity() === false) {
           event.preventDefault();
           event.stopPropagation();
@@ -117,6 +118,7 @@ function symptom_trigger()
         form.classList.add('was-validated');
       }, false);
       form.addEventListener('click', function(event) {
+        require_entry();
         if (form.checkValidity() === false) {
           event.stopPropagation();
 
@@ -144,6 +146,31 @@ function relapse_trigger()
   }
   else {
     document.getElementById("relapse_fields").style.display = "none"
+  }
+
+}
+
+function require_entry(){
+  var theForm = document.forms["catinfo"];
+  var birthday = document.getElementById("CatBirthday");
+  if (birthday != null)
+  {
+    if(birthday.value != '')
+    {
+
+      birthday.classList.remove("is-invalid");
+      birthday.classList.add("is-valid");
+    }
+    else{
+      birthday.classList.remove("is-valid");
+      birthday.classList.add("is-invalid");
+
+    }
+    if (birthday.disabled == true){
+      birthday.classList.remove("is-valid");
+      birthday.classList.remove("is-invalid");
+
+    }
   }
 
 }

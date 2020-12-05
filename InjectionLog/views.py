@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from django.db.models.functions import Cast
 from django.contrib.auth import authenticate, login
 from .models import InjectionLog, GSBrand, Cats, UserGS, SelectedCat
-from .models import UserExtension, RelapseDate, ObservationLog, BloodWork
+from .models import UserExtension, RelapseDate, ObservationLog, BloodWork, FixTimezone
 from .forms import BloodWorkForm
 from django.contrib.auth.forms import UserCreationForm
 from .forms import AddGS, RegisterForm
@@ -30,6 +30,7 @@ import plotly.express as px
 import os
 import json
 import math
+from cron_data import Database
 
 
 
@@ -93,13 +94,26 @@ def register(request):
 def main_site(request):
     sc = None
     relapse = None
+    cat_quality = ""
+    brand_plot = ""
 
     # Define a local timezone from the IP Address
     tz = get_local_timezone(request)
     timezone.activate(tz)
-    now = datetime.now(pytz.timezone(tz))
-
-
+    local_time = pytz.timezone(tz)
+    now = datetime.now(local_time)
+    date_stamp = None
+    
+    unaware = datetime.now()
+    try:
+        user_defined_tz = FixTimezone.objects.get(owner=request.user).timezone
+        tz_list = None
+    except:
+        user_defined_tz = False
+        tz_list = []
+        for time in pytz.all_timezones:
+            tz_list.append(time)
+        
     validcats = Cats.objects.filter(owner=request.user)
     if not SelectedCat.objects.filter(user=request.user).exists():
         if Cats.objects.filter(owner=request.user).exists():
@@ -117,6 +131,41 @@ def main_site(request):
         sc = SelectedCat.objects.get(user=request.user)
         sc.cat_name=cat
         sc.save()
+    
+    brand_plot=cat_stats(sc)
+
+    try:
+        ht_val = 220
+        if sc.cat_name.cured:
+            ht_val=150
+        quality = InjectionLog.objects.filter(cat_name=sc.cat_name).order_by("injection_time").filter(
+                active=True)
+        res = [x.cat_weight for x in quality]
+        wt_unit = [x.wt_units for x in quality][0]
+        fig = px.line(res, height=ht_val)
+        fig.update_xaxes(visible=False, fixedrange=True)
+    
+        
+        fig.update_layout(
+            showlegend=False,
+            plot_bgcolor="white",
+            yaxis_title="Cat's Weight (%s)" % wt_unit,
+            margin=dict(t=10,l=10,b=10,r=10)
+        )
+        
+        fig.update_yaxes(
+        visible=True, 
+        fixedrange=True,
+        title_text = "Cat's Weight (%s)" % wt_unit,
+        title_font_size = 10)
+        
+        fig.update_traces(
+        hoverinfo='skip',
+        hovertemplate=None)
+        cat_quality = plot(fig, output_type="div", include_plotlyjs="cdn")
+        
+    except:
+        cat_quality = ""
 
 
     try:
@@ -127,12 +176,12 @@ def main_site(request):
             inj_date = InjectionLog.objects.filter(
                 owner=request.user).filter(
                 cat_name=sc.cat_name).filter(
-                active=True).order_by("-injection_time")[0].injection_time.date() - relapse.relapse_start
-            inj_progress["inj_date"] = inj_date.days
-
+                active=True).order_by("-injection_time")[0].injection_time
+            date_stamp = local_time.fromutc(inj_date.replace(tzinfo=None))
+            inj_date = date_stamp.date() - relapse.relapse_start
+            inj_progress["inj_date"] = inj_date.days+1
         except:
             inj_progress = None
-
     except:
         try:
             treatment_duration = now.date()-sc.cat_name.treatment_start
@@ -143,8 +192,10 @@ def main_site(request):
             inj_date = InjectionLog.objects.filter(
                 owner=request.user).filter(
                 cat_name=sc.cat_name).filter(
-                active=True).order_by("-injection_time")[0].injection_time.date() - sc.cat_name.treatment_start
-            inj_progress["inj_date"] = inj_date.days
+                active=True).order_by("-injection_time")[0].injection_time
+            date_stamp = local_time.fromutc(inj_date.replace(tzinfo=None))
+            inj_date = date_stamp.date() - sc.cat_name.treatment_start
+            inj_progress["inj_date"] = inj_date.days+1
         except:
             inj_progress = None
 
@@ -158,7 +209,7 @@ def main_site(request):
     else:
         grouping = None
     injections = InjectionLog.objects.filter(owner=request.user)
-    return render(request, template, {"page":page, "progress":inj_progress,"sc":sc, "relapse":relapse, "treatment_duration":treatment_duration.days,"grouping":grouping,"validcats":validcats})
+    return render(request, template, {"page":page, "cat_quality":cat_quality, "brand_plot":brand_plot, "date_stamp":date_stamp, "progress":inj_progress,"sc":sc, "tz":tz, "tz_list":tz_list, "user_defined_timezone":user_defined_tz, "relapse":relapse, "treatment_duration":treatment_duration.days,"grouping":grouping,"validcats":validcats,"time_info":now.utcoffset})
 
 def sharable_hash(cat, user):
     key1 = str(cat).encode('utf-8')
@@ -173,7 +224,8 @@ def catinfo(request):
     sharable = None
     relapse = None
     validcats = Cats.objects.filter(owner=request.user)
-    pattern = "[0-9]{4}\-[0-9]{2}\-[0-9]{2}"
+    pattern="^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$"
+    
     if request.method == "POST":
         if request.POST["CatID"]:
 
@@ -225,6 +277,10 @@ def catinfo(request):
                 treatment_date = request.POST["treatmentstart"]
             else:
                 treatment_date = None
+            
+            if not re.match(pattern, request.POST["CatBirthday"]):
+                return redirect("/catinfo?error=Cat's birthday not entered. Please enter a value.&CatID=0")
+
             cats = Cats(
                 owner = request.user,
                 name = request.POST["CatName"],
@@ -237,6 +293,7 @@ def catinfo(request):
                 WarriorAdmin = request.POST["warrioradmin"],
                 notes = request.POST["notes"]
                 )
+            cats.save()
             sharable = sharable_hash(cats, request.user)
             cats.sharable = sharable
             cats.save()
@@ -295,6 +352,11 @@ def catinfo(request):
 def information(request):
     template ='InjectionLog/information.html'
     page="information"
+    return render(request, template,{"page":page})
+
+def about(request):
+    template ='InjectionLog/about.html'
+    page="about"
     return render(request, template,{"page":page})
 
 @login_required
@@ -448,7 +510,11 @@ def recordinjection(request):
         cat = Cats.objects.get(id=request.POST["selectedcat"])
         weight = request.POST["CatWeight"]
         brand  = request.POST["brand_value"]
-        i_date = request.POST["inj_date"]
+        date = request.POST["inj_date"]
+        try:
+            i_date = tz.localize(datetime.strptime(date,"%Y-%m-%d %I:%M %p"))
+        except:
+            return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"Invalid Date Time Format Entered. Must be YYYY-MM-DD HH:MM AM/PM"})
         rating = request.POST["cat_rating"]
         amount = request.POST["calculateddose"]
         i_note = request.POST["injectionnotes"]
@@ -471,18 +537,19 @@ def recordinjection(request):
             unit="kg"
 
 
-        q = InjectionLog.objects.filter(owner = user).filter(cat_name = cat).filter(active=True).annotate(inj_value=Cast('injection_time', DateField()),)
+        q = InjectionLog.objects.filter(owner = user).filter(cat_name = cat).filter(active=True)
         for row in q:
-            if i_date[:10] in row.inj_value.strftime("%Y-%m-%d") and "multi_entry" not in request.POST:
+            difference = i_date - row.injection_time
+            if difference.total_seconds() < 12*60*60 and difference.total_seconds() > 0 and "multi_entry" not in request.POST:
                 request.GET = request.POST
-                return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"The injection date has already been recorded.  Add information for a different day."})
+                return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"The injection date and time entered is too close to a previous injection. Select 'allow multiplie entires' if this is correct"})
 
         log = InjectionLog(
                 owner = user,
                 gs_brand = brand,
                 cat_name = cat,
                 cat_weight= weight,
-                injection_time = tz.localize(datetime.strptime(i_date,"%Y-%m-%dT%H:%M")),
+                injection_time = i_date,
                 injection_amount = amount,
                 cat_behavior_today = rating,
                 injection_notes = i_note,
@@ -493,7 +560,7 @@ def recordinjection(request):
         log.save()
 
         if cat.treatment_start is None:
-            cat.treatment_start = i_date[:10]
+            cat.treatment_start = i_date.date()
             cat.save()
 
         return redirect("/?message=success&weight=%s&unit=%s&ns=%s" % (weight,unit,ns))
@@ -512,7 +579,8 @@ def injectionlog(request):
 
     template ='InjectionLog/injlog.html'
     page="log"
-
+    
+    treatment_start = cat.treatment_start
     if "sharable" not in request.GET:
         sharable = False
 
@@ -572,12 +640,19 @@ def injectionlog(request):
         return response
 
 
-    return render(request, template, {"page":page,"injections":injections, "local_time":local_time, "validcats":validcats, "cat":cat, "sharable":sharable})
+    return render(request, template, {"page":page, "treatment_start":treatment_start, "injections":injections, "local_time":local_time, "validcats":validcats, "cat":cat, "sharable":sharable})
 
 def change_record(request):
     if request.method == "POST":
+        local_time = get_local_timezone(request)
+        tz = pytz.timezone(local_time)
+        i_date = request.POST["inj_date"]
+        try:
+            i_date = datetime.strptime(i_date,"%Y-%m-%d %I:%M %p")
+        except:
+            return redirect("/log/?error=Invalid Date Format Entered&selectedcat=%s" % request.POST["cat_name"])
         record = InjectionLog.objects.get(id=request.POST["inj_id"])
-        record.injection_time = request.POST["inj_date"]
+        record.injection_time = timezone.make_aware(i_date,tz,True)
         record.cat_behavior_today = request.POST["cat_rating"]
         record.injection_amount = request.POST["injection_amount"]
         record.new_symptom = request.POST["new_symptom"]
@@ -609,9 +684,12 @@ def observation_log(request):
     page="log"
 
     try:
-        relapse = RelapseDate.objects.filter(cat_name = cat.cat_name).order_by('-relapse_start')[0]
+        relapse = RelapseDate.objects.filter(cat_name = cat).order_by('-relapse_start')[0]
+        treatment_duration = now.date()-relapse.relapse_start
+        relapse = relapse.relapse_start
     except:
-        relapse = None
+        relapse = cat.treatment_start
+        treatment_duration = now.date()-cat.treatment_start
 
 
 
@@ -622,7 +700,7 @@ def observation_log(request):
 
 
 
-    return render(request, template, {"page":page,"relapse":relapse, "observations":observations,"validcats":validcats, "cat":cat})
+    return render(request, template, {"page":page,"relapse":relapse, "treatment_duration":treatment_duration, "observations":observations,"validcats":validcats, "cat":cat})
 
 
 
@@ -763,9 +841,12 @@ def data_analysis(request):
     age_div = data["summary"]["graph"]
     duration_div = data["distribution"]["graph"]
     past_initial_treatment = data["distribution"]["total_cats"]
+    cured_cats = data["distribution"]["cured_cats"]
+    cat_quality = data["quality"]["graph"]
+    brand_div = data["brands"]["graph"]
 
 
-    return render(request, "InjectionLog/data_analysis.html",{"page":"data","duration_fig":duration_div, "84_cats":past_initial_treatment,"age_fig":age_div,"fip_fig":fip_div,"wt_fig":wt_div, "dry_cases":total_cats["0"],"wet_cases":total_cats["1"]})
+    return render(request, "InjectionLog/data_analysis.html",{"page":"data","brand_stats":brand_div, "duration_fig":duration_div, "cat_quality":cat_quality, "cured_cats":cured_cats, "84_cats":past_initial_treatment,"age_fig":age_div,"fip_fig":fip_div,"wt_fig":wt_div, "dry_cases":total_cats["0"],"wet_cases":total_cats["1"]})
 
 def vet_info(request):
     return render(request,"InjectionLog/vet_info.html",{"page":"vetinfo"})
@@ -774,7 +855,7 @@ def brands(request):
     return render(request,"InjectionLog/brands.html",{"page":"brands"})
 
 def error_create(requests):
-    return render(request, "InjectionLog/error_create.html")
+    return render(requests, "InjectionLog/error_create.html")
 
 def costs(request):
     """
@@ -803,9 +884,11 @@ def costs(request):
             dosage=10
         else:
             dosage=6
-
-        wt = float(request.GET["CatWeight"])
-        ct_age = float(request.GET["CatAge"])
+        try:
+            wt = float(request.GET["CatWeight"])
+            ct_age = float(request.GET["CatAge"])
+        except:
+            return redirect("/costs/?error=Error: Please enter a Cat's Weight and Age")
         for i in range(85):
             calc_wt = round((mult*i+stwt*wt+ints+1+age*ct_age)*wt,1)
             if calc_wt>wt:
@@ -833,18 +916,153 @@ def costs(request):
 
 def get_local_timezone(request):
     import requests
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    if ip == "127.0.0.1":
-        ip = "72.105.141.28"
+    if "tz" in request.session:
+        return request.session["tz"]
+    
     try:
-        ipinfo = requests.get('http://ip-api.com/json/%s' % ip)
-        ipinfo = ipinfo.json()
-        tz = ipinfo["timezone"]
+        user_defined_tz = FixTimezone.objects.get(owner=request.user).timezone
+        request.session["tz"] = user_defined_tz
+        return request.session["tz"]
     except:
-        tz = "UTC"
+        
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        if ip == "127.0.0.1":
+            ip = "72.105.141.28"
+        try:
+            ipinfo = requests.get('http://ip-api.com/json/%s' % ip)
+            ipinfo = ipinfo.json()
+            tz = ipinfo["timezone"]
+        except:
+            tz = "UTC"
+        request.session["tz"] = tz
+        return tz
 
-    return tz
+def cat_stats(sc):
+    import numpy as np
+    
+    data = Database()
+    quality     = data.get_cat_quality()
+    this_cat = pd.DataFrame()
+    
+    results = quality.groupby(['week']).agg(
+        behavior = pd.NamedAgg(column='cat_behavior_today', aggfunc=np.mean),
+        stdev = pd.NamedAgg(column='cat_behavior_today',aggfunc=np.std),
+        be_max = pd.NamedAgg(column='cat_behavior_today',aggfunc=np.max),
+        be_min = pd.NamedAgg(column='cat_behavior_today',aggfunc=np.min),
+        records=pd.NamedAgg(column='cat_behavior_today', aggfunc='count')
+        )
+    results.reset_index(inplace=True)
+    sem  = results["stdev"]
+    x=results["week"].tolist()
+    y=results["behavior"].to_list()
+    upper = y+sem.fillna(0)
+    lower = y-sem.fillna(0)
+    upper = upper.tolist()
+    lower = lower.tolist()
+    try:
+        treatment = sc.cat_name.treatment_start
+    except:
+        return None
+    quality = InjectionLog.objects.filter(cat_name=sc.cat_name).order_by("injection_time").filter(
+                active=True)
+    res = [x.cat_behavior_today for x in quality]
+    res_x = [x.injection_time.date() - treatment for x in quality]
+    res_x = [np.ceil(x.days/7) for x in res_x]
+    try:
+        max(res_x)
+    except:
+        return None
+    if max(res_x) == 1:
+        return None
+    this_cat["x"] = res_x
+    this_cat["y"] = res
+    this_cat = this_cat.groupby(["x"]).agg(
+        quality=pd.NamedAgg(column="y", aggfunc=np.mean))
+    this_cat.reset_index(inplace=True)
+    
+    fig = go.Figure([
+        go.Scatter(
+            x=x,
+            y=y,
+            showlegend=False,
+            line=dict(color='rgb(0,100,80,.4)'),
+            hoverinfo='skip',
+            mode='lines' 
+            
+        ),
+        go.Scatter(
+            x=this_cat["x"],
+            y=this_cat["quality"],
+            line=dict(color='rgb(100,100,80)'),
+
+            hoverinfo='skip',
+            mode='markers',
+            name=sc.cat_name.name,
+        ),
+        go.Scatter(
+            x=x+x[::-1], # x, then x reversed
+            y=upper+lower[::-1], # upper, then lower reversed
+            fill='toself',
+            fillcolor='rgba(0,100,80,0.2)',
+            line=dict(color='rgba(255,255,255,0)'),
+            hoverinfo="skip",
+            showlegend=True,
+            name="Average Cat"
+        )
+    ])
+    
+    
+    fig.update_layout( 
+    paper_bgcolor='rgba(0,0,0,0)',
+    legend=dict(
+    yanchor="top",
+    y=0.99,
+    xanchor="left",
+    x=0.01),
+    margin=dict(l=0, r=0, t=0, b=0),
+    yaxis_title="Cat Quality (1-5)", xaxis_title="Week Number",
+    xaxis=dict(range=[1,max(res_x)+.2]))
+    fig.update_xaxes(fixedrange=True)
+    fig.update_yaxes(fixedrange=True)
+    
+    quality_plot = plot(fig, output_type="div", include_plotlyjs="cdn")
+
+    return quality_plot
+    
+def fix_timezone(request):
+    if request.method != "POST":
+        return redirect("/?error=Action Unavailable")
+        
+    objects = []
+    try:
+        timezone = FixTimezone.objects.get(owner = request.user)
+        return redirect("/?error=User timezone already set as %s" % timezone)
+    except:
+        time_string = request.POST["user_tz"]
+        tz = pytz.timezone(time_string)
+        cutoff = datetime.strptime("10/25/2020 23:59", "%m/%d/%Y %H:%M")
+        for cat in Cats.objects.filter(owner = request.user):
+            objects.append(cat.id)
+            logs = InjectionLog.objects.filter(cat_name=cat.id)
+            for log in logs:
+                injection_time = log.injection_time.replace(tzinfo=None)
+                if injection_time > cutoff:
+                    continue
+                log.injection_time=tz.localize(injection_time)
+                log.save()
+                
+        user_time = FixTimezone(
+            owner = request.user,
+            fixed = True,
+            timezone = time_string)
+        user_time.save()
+                
+        return redirect("/?message=success")
+            
+        
+
+    

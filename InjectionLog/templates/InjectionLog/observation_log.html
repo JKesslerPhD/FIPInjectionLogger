@@ -26,7 +26,7 @@
         <th scope="col">Observation Day</th>
         <th scope="col">Weight</th>
         <th scope="col">Temperature</th>
-        <th scope="col">Cat Rating</th
+        <th scope="col">Cat Rating</th>
         <th scope="col">Notes</th>
         <th scope="col">Delete Record</th>
 
@@ -36,9 +36,7 @@
     {% for observation in observations %}
       <tr>
         <th scope="row">{{ observation.observation_date}} </th>
-        {% with extension=cat.extended_treatment|add:84 %}
-        <td>{% if relapse %}{{ relapse.relapse_start|elapsed:84 }} {% else %} {{cat.treatment_start|elapsed:extension}} {% endif %}</td>
-        {% endwith %}
+        <td>{{relapse|date_diff:observation.observation_date|subtract:84|subtract:cat.extended_treatment}}</td>
         <td>{% if observation.cat_weight %}{{ observation.cat_weight }} {{observation.wt_units}}{% endif %}</td>
         <td>{% if observation.temperature %}{{ observation.temperature }} {{observation.temp_units}}{% endif %}</td>
         <td>{{ observation.cat_behavior_today }}</td>

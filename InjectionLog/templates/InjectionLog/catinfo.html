@@ -35,6 +35,8 @@
 {% if cat.owner == request.user or request.user|has_group:"WarriorAdmin" or not request.GET.CatID or request.GET.CatID == '0' %}
 <main role="main">
   <div class="container">
+
+    {% if cat.id %}
     <div class="alert alert-primary row align-items-center">
       <div class="col-md-3">
         <a id="sharable_link" href="/catinfo?CatID=0&sharable={{sharable}}" onclick="copy_sharable();">Sharable Link</a>
@@ -43,6 +45,7 @@
         <button id="link_copy" class="btn btn-secondary" onclick="copy_sharable();">Copy Link</button>
       </div>
     </div>
+    {% endif %}
 
     <div class="alert alert-secondary">
       <form class="needs-validation" novalidate action="/catinfo/" id="catinfo" method="POST">
@@ -59,7 +62,7 @@
             </div>
             <div class="col">
               <div class="custom-control custom-switch">
-                <input name="cured"{% if request.GET.sharable %} disabled {% endif %} {% if cat.cured %} checked {% endif %} type="checkbox" class="custom-control-input" id="cured">
+                <input name="cured"{% if request.GET.sharable %} disabled {% endif %} {% if cat.cured %} checked {% endif %} onclick="submit();" type="checkbox" class="custom-control-input" id="cured">
                 <label class="custom-control-label" for="cured">My Cat has been cured!</label>
               </div>
             </div>
@@ -100,7 +103,9 @@
         <div class="form-group">
           <label for="CatBirthday">Birthday</label>
           <div class="input-group mb-3 col-xsm-1">
-             <input {% if request.GET.sharable %} disabled {% endif %}  {% if cat.id %} disabled {% endif %} type="date" max="{{now|max_time|date:'Y-m-d'}}" required class="form-control" value="{{cat.birthday|date:'Y-m-d'}}" name="CatBirthday" id="CatBirthday" />
+            <span class="Zebra_DatePicker_Icon_Wrapper" style="display: block; position: relative; float: none; top: auto; right: auto; bottom: auto; left: 0px; margin: 0px; padding: 0px; width: 100%;">
+             <input {% if request.GET.sharable %} disabled {% endif %}  {% if cat.id %} disabled {% endif %} style="width:200px;" type="text" required data-zdp_readonly_element="true" class=" {% if not cat.id %}bg-white{% endif %} form-control yearpicker" placeholder="yyyy-mm-dd" data-date-format="yyyy/mm/dd" value="{{cat.birthday|date:'Y-m-d'}}" name="CatBirthday" id="CatBirthday" onChange="require_entry();" />
+           </span>
           </div>
         </div>
 
@@ -110,7 +115,9 @@
           <h4>Treatment Information</h4>
           <div class="form-row mb-3">
             <label for="treatmentstart">Treatment Start Date</label>
-            <input {% if request.GET.sharable %} disabled {% endif %}  name="treatmentstart" class="form-control" type="date" max="{{now|max_time|date:'Y-m-d'}}" value="{{cat.treatment_start|date:'Y-m-d'}}" {% if cat.treatment_start %} disabled {% endif %} id="treatmentstart">
+            <span class="Zebra_DatePicker_Icon_Wrapper" style="display: block; position: relative; float: none; top: auto; right: auto; bottom: auto; left: 0px; margin: 0px; padding: 0px; width: 100%;">
+              <input {% if request.GET.sharable %} disabled {% endif %} style="width:200px;" name="treatmentstart" placeholder="yyyy-mm-dd"  data-zdp_readonly_element="true" class="form-control yearpicker {% if not cat.id or not cat.treatment_start %}bg-white{% endif %}" type="text" value="{{cat.treatment_start|date:'Y-m-d'}}" {% if cat.treatment_start %} disabled {% endif %} id="treatmentstart">
+
           </div>
 
 
@@ -142,7 +149,8 @@
               {% for date in relapse %}
                 <div class="form-row mb-3">
                   <label for="relapse_date_{{forloop.counter}}">Relapse Start Date</label>
-                  <input {% if request.GET.sharable %} disabled {% endif %}  name="relapse_date_{{forloop.counter}}" class="form-control" max="{{now|max_time|date:'Y-m-d'}}" type="date" value="{{date.relapse_start|date:'Y-m-d'}}" {% if date.relapse_start %} disabled {% endif %} id="relapse_date_{{forloop.counter}}">
+                    <input {% if request.GET.sharable %} disabled {% endif %}  name="relapse_date_{{forloop.counter}}" type="text" style="position: relative; float: none; top: auto; right: auto;
+                      bottom: auto; left: 0px; margin: 0px; padding-right: 0px; width: 250px;" class="form-control" placeholder="yyyy-mm-dd" type="text" data-date-format="yyyy-mm-dd" value="{{date.relapse_start|date:'Y-m-d'}}" {% if date.relapse_start %} disabled {% endif %} id="relapse_date_{{forloop.counter}}">
                 </div>
                 <div class="input-group mb-3">
                   <div class="col-5">
@@ -168,11 +176,12 @@
               {% endfor %}
                 <div class="form-row mb-3">
                   <label for="relapse_date">New Relapse Start Date</label>
-                  <input {% if request.GET.sharable %} disabled {% endif %}  name="relapse_date" class="form-control" type="date"  max="{{now|max_time|date:'Y-m-d'}}" value="" id="relapse_date">
+                  <input {% if request.GET.sharable %} disabled {% endif %}  name="relapse_date" data-zdp_readonly_element="true" placeholder="yyyy-mm-dd" type="text" style="position: relative; float: none; top: auto; right: auto;
+                  bottom: auto; left: 0px; margin: 0px; padding-right: 10px; width: 250px;" class="form-control datepicker {% if not request.GET.sharable %} bg-white {% endif %}" type="text" data-date-format="yyyy-mm-dd" max="{{now|max_time|date:'Y-m-d'}}" value="" id="relapse_date">
                 </div>
                 <div class="input-group mb-3">
                   <div class="col-5">
-                    <select required name="FIPTypeRelapse" class="form-control">
+                    <select required name="FIPTypeRelapse" class="form-control" {% if request.GET.sharable %} disabled {% endif %} >
                       <option value="">Select FIP-Type</option>
                       <option value="wet" {% if cat.fip_type == "wet" %} Selected {% endif %}>Wet FIP</option>
                       <option value="dry" {% if cat.fip_type == "dry" %} Selected {% endif %}>Dry FIP</option>
@@ -297,7 +306,8 @@
                              <div class="col-md-6 mb-3">
                                <div class="form-group">
                                  <label for="id_bloodwork_date" class="control-label">Bloodwork Date</label>
-                                 <input {% if request.GET.sharable %} disabled {% endif %}  type="date" max="{{now|max_time|date:'Y-m-d'}}" class="form-control" name="bloodwork_date" value="{{now|max_time|date:'Y-m-d'}}" id="id_bloodwork_date">
+                                 <input {% if request.GET.sharable %} disabled {% endif %}  type="input" max="{{now|max_time|date:'Y-m-d'}}" data-zdp_readonly_element="true" type="text" style="position: relative; float: none;
+                                 top: auto; right: auto; bottom: auto; left: 0px; margin: 0px; padding-right: 0px; width: 200px;" class="form-control datepicker bg-white is-valid" data-date-format="yyyy-mm-dd" name="bloodwork_date" value="{{now|max_time|date:'Y-m-d'}}" id="id_bloodwork_date">
 
                                </div>
                              </div>
@@ -306,7 +316,7 @@
                              <div class="col-md-6 mb-3">
                                <div class="form-group">
                                  <label for="id_notes" class="control-label">Additional Notes/Comments</label>
-                                 <textarea {% if request.GET.sharable %} disabled {% endif %}  type="date"  max="{{now|max_time|date:'Y-m-d'}}" class="form-control" name="notes" id="id_notes"></textarea>
+                                 <textarea {% if request.GET.sharable %} disabled {% endif %}  type="text" class="form-control" name="notes" id="id_notes"></textarea>
 
                                </div>
                              </div>
@@ -357,6 +367,19 @@ function copy_sharable(e) {
 $(document).on("click", '#sharable_link', function(event){
        event.preventDefault();
    });
+$('input.datepicker').Zebra_DatePicker({
+     direction: false
+   });
+
+ $('input.yearpicker').Zebra_DatePicker({
+      onClose:   function (){
+        require_entry();
+      },
+      direction: false,
+      view: 'years'
+    });
+
+
 
 
 </script>

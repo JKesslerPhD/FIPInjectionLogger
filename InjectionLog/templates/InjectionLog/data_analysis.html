@@ -59,8 +59,40 @@
 
     </div>
     <div class="alert alert-light">
-      <p><text class="text-danger">{{84_cats}} cats</text> that have been logged are now past the 84-day treatment period</p>
-      <strong>Figure 4.</strong> This graph shows the number of cats the siste has logged significant treatment data for relative to how long ago the cat started treatment using GS
+      <p><text class="text-danger">{{84_cats}}</text> of the cats that have been logged on this site are now past the 84-day treatment period and in observation, while
+      <text class="text-danger">{{cured_cats}}</text> of the cats that have been logged on this site have been marked as cured.
+      <p>More data will be added once we have sufficient treatment successes</p>
+      <strong>Figure 4.</strong> This graph shows the number of cats the site has logged significant treatment data for relative to how long ago the cat started treatment using GS
+    </div>
+
+    <div class="align-middle">
+
+      {% autoescape off %}
+       {{ cat_quality }}
+       {% endautoescape %}
+
+    </div>
+    <div class="alert alert-light">
+
+      <strong>Figure 5.</strong> This graph shows how the average cat being treated with GS improves over time.
+      A 5 represents that the cat acts completely cured, while a 1 indicates that the cat is really not doing well.
+      This data is presented only for GS brands that have had sufficient data logged on this website to make this estimate per
+      brand. Error bars represent the 95% CI for the average of each brand
+    </div>
+
+    <div class="align-middle">
+
+      {% autoescape off %}
+       {{ brand_stats }}
+       {% endautoescape %}
+
+    </div>
+    <div class="alert alert-light">
+
+      <strong>Figure 6.</strong> This graph shows the brands that people on this site are using,
+      and how many injections have been logged for each associated week of treatment with a specific brand.
+      Brands being used past week 12 indicate that injections have been logged which are associated with extended treatments or
+      relapses for some cats on the site.
     </div>
 
   </div>

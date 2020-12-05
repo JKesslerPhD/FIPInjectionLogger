@@ -1,0 +1,103 @@
+{% extends 'InjectionLog/nologin.html' %}
+{% load groupfilter %}
+{% block maincontent %}
+
+<main role="main">
+
+  <div class="container">
+    <a name="thissite"></a>
+    <div class="card border-dark">
+      <div class="card-header bg-dark text-light">What is this Site?</div>
+      <div class="card-body">
+        <div align="center"><img class="img-responsive" src="/static/favicon/android-chrome-96x96.png" width=64 height=64 alt=""></div>
+          <p>This site was created to provide a tool to help parents monitor their cats progress
+            and to standardize the data collection process for cats being treated for FIP with GS-441524.
+          <p>Because GS-441524 is not presently approved for use on cats by any regulatory body,
+            many veterinarians are not familiar with the treatment process. The lack of familiarity, as well as the
+             lack of transparency around GS-441524, leads many vets to advise
+            pet owners to euthanize their cats as the most humane option for an FIP-positive kitty.
+          <p>There is still a lack of public data available, and a lack of public awareness that
+            GS-441524 is a <i>very effective</i> treatment for FIP. To address this concern, this site helps to legitimize
+            the use of GS-441524 as a viable alternative to euthanasia.  Thousands of cats worldwide
+            have been cured from FIP. As more parents record their data on this site, additional
+            statistics will be made available in relation to treatment success rates and outcomes.
+          <p><strong>Please Share this Site with your veterinarian so that they can become familiar with the FIP treatment process</strong>
+          <p>Current <a href="/vetinfo">peer-reviewed
+            research</a> shows a success rates for cats that make it past the first week of GS-441524 treatment
+            as being around 90%.  The cats used in the clinical study were specifically seleted after numerous tests, so results for
+            these cats may not be representative of the achievable results for a typical cat with FIP.
+            The cats with data being logged on this website, however, are representative of the average cat going through treatment.
+      </div>
+    </div>
+    <br>
+    <a name="whoami"></a>
+    <div class="card border-dark">
+      <div class="card-header bg-warning">Who runs this site</div>
+      <div class="card-body">
+        <p>This site is run by <a href="http://trailpeaches.com">Jeff Kessler</a>, an individual who
+          has successfully treated his cat, Cat Stevens, using GS-441524.
+          <p>Hi! I (Jeff) have no involvement or affiliation with any
+          companies, individuals, or facebook groups that are selling, manufacturing, or distirbuting GS-441524 or any other
+          supplements or drugs for cats.
+          <p>I'm a cat-lover, avid hiker, and researcher with a PhD in energy and climate policy
+          from the University of California, and an MS in Chemical Engineering from the University of Colorado.
+          Given my background and experience with statistics and economic modeling, I find myself frequently furstrated by
+          the lack of transparent data and information associated with the FIP treatment process.  This was especially
+          frustrating when treating my cat.  I wanted to know things like:
+          What brands are good?  What's the difference between brands? What does a relapse look like?
+          What is the success rate? Do the oral pills work? What do neurological symptoms look like?
+        <p>To help address these concerns that I and other cat parents have, I created this site. In addition, I have
+          also used analytical chemistry equipment on several brands of GS (results available upon request) to identify
+          variability and potential differences from one GS brand to another. The analytical chemistry data I collected
+          helped inform my opinion on what brand to use for my cat's relapse treatment.
+        <p>I intend for this site to be used as a resource to help scared and nervous cat-parents everywhere.
+          The site also has functionality to help warrior admins provide advice and to help monitor your
+          treatment progress and cat's overall health. Have your admin get in touch with me if they are not sure how to use the site.
+        <p>I run this site free-of-charge, and I am not currently asking for any donations.  I do not intend to
+          collect revenue to support this site (it is very cheap to operate, presently).
+          I hope that alternative treatment approaches will exist before costs
+          to run this site are beyond what I can afford.  The site does not
+          store or collect personal information beyond what the user provides as their email address.  No data
+          that you add to this site will ever be sold to any companies or individuals,
+          and will be used solely for the purpose of helping parents, vets, and researchers better improve outcomes
+          for cats being treated for FIP.
+        <p>If you find website bugs, problems, or issues, or would like specific features added, I will try to address these requests as
+          soon as possible (usually within a day or two).  Please <a href="https://github.com/JKesslerPhD/FIPInjectionLogger/issues">submit a bug or request</a> through the github respository, or <a href="mailto:jeff.kessler@gmail.com?subject=FIP Log">send me an email</a>.
+      </div>
+    </div>
+    <br>
+    <a name="catstevens"></a>
+    <div class="card border-dark">
+      <div class="card-header bg-primary text-white">Tell me about Cat Stevens!</div>
+            <img class="card-img-top" src="/static/cat2.jpg" alt="Cat Stevens is a beautiful boy!">
+      <div class="card-body">
+        <p>In January 2020, we noticed that Cat Stevens looked a little off.  His fur was looking
+          less groomed, and it looked like he had been losing a bit too much weight.  When we took him to the vet in early February,
+          they weren't certain what was wrong with him.  A week later we moved him over to intensive care at <a href="http://vistavets.com">Vista Veterinary specialists<a>,
+          and he received a diagnosis of Dry (non-effusive) FIP a few days later.  At the time, our vet thought we were going to have to put him down.
+        <p>After frantically looking at the peer-reviewed literature, I (Jeff) found the Pedersen et al. (2019) paper which indicated that
+          GS-441524 could be used to effectively treat cats for FIP.  Several hours later I had made it to the FIP Warriors facebook
+          page, and was being connected with a supply of GS-441524, that I was able to pickup that evening.
+        <p>We started treatment with Cat Stevens on February 19th, 2020.  After one injection, Cat Stevens was feeling good enough to leave intensive care, and we
+          took him home to continue treatment.  The next several weeks were remarkable! We saw Cat Stevens go from a curled up ball of misery to a normal-seeming,
+          active cat.  As he re-gained his strength, the injections became harder and harder.  We looked at various options for restraining him.  We looked into cones,
+          and kitty tortillas.  The most important thing was to continue to give him this miraculous, life-saving drug.
+        <p>Eventually, we got into a routine that worked best
+          for us: no restraints.  We set aside a room in our home for injections, and removed anything that he would be able to hide under/inside of which would make injections
+          impossible.  We found that by using a pair of thick gloves, and <a href="https://smile.amazon.com/Churu-Lickable-Creamy-Flavor-Variety/dp/B01N3QZTMI?sa-no-redirect=1">numerous churus</a>, we were often able to get an injection into him while he was distracted by
+          the treat.  The injections worked best when we didn't rush them, and just bribed him into a corner with churus.
+        <p>By early May, we were looking forward to finally being done!  Unfortunately, by day 3 of the observation period it was apparent that he had relapsed.
+          We believe the relapse was because he had undetected neurlogical symptoms, and that we had not been treating at a high enough dosage to pass the blood brain barrier.
+          This is a known issue with treating cats for Dry FIP, which is why many admins now suggest a starting dosage of 10 mg/kg for dry cases.
+        <p>We began our second round of treatment for Cat at 10 mg/kg, and decided after the 1st month to step it up to 15 mg/kg to make sure we were at sufficiently high
+          concentrations to cross the blood brain barrier.  After another 84 days of injections, and a whole lot of yowling, mis-haps, and stress, we were finally finished.
+        <p>We completed Cat's 84-day observation period on October 30th, 2020.  Our boy can now be declared officially cured!
+      </div>
+      <img class="card-img-top" src="/static/cat1.jpg" alt="Cat Stevens is a beautiful boy!">
+    </div>
+  </div>
+</main>
+<br>
+
+
+{% endblock %}

@@ -31,6 +31,8 @@ import os
 import json
 import math
 from cron_data import Database
+from gdstorage.storage import GoogleDriveStorage
+from django.core.files.base import ContentFile
 
 
 
@@ -233,8 +235,15 @@ def catinfo(request):
 
             if "cured" in request.POST:
                 c.cured = True
+                c.bad = False
             else:
                 c.cured = False
+            
+            if "bad_outcome" in request.POST:
+                c.cured = False
+                c.bad = True
+            else:
+                c.bad = False
 
             if  "treatmentstart" in request.POST and re.match(pattern,request.POST["treatmentstart"]):
                 c.treatment_start = request.POST["treatmentstart"]
@@ -519,6 +528,15 @@ def recordinjection(request):
         amount = request.POST["calculateddose"]
         i_note = request.POST["injectionnotes"]
         o_note = request.POST["othernotes"]
+        
+        if float(weight) > 30:
+            return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"You entered a weight for your cat that appears unrealistic.  Please check your weight and units, and try again"})
+            
+        
+        if float(amount) > 30:
+            return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"The calculated dose appears to be too large or incorrect.  Please check that you have entered a correct weight, and press 'calculate'.  If this problem persists, report a bug."})
+            
+            
         if "new_symptom" in request.POST:
             newsymptom = request.POST["symptom_details"]
             if newsymptom!="":
@@ -768,20 +786,98 @@ def signup(request):
 @login_required
 def upload_file(request):
     if request.method == 'POST':
-
-        form = BloodWorkForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-
-            return redirect('/catinfo?message=success&CatID=%s' % request.POST["cat_name"])
-        else:
-            return redirect('/catinfo?error=Could Not Upload Blood Work&CatID=%s' % request.POST["cat_name"])
+        targetDir = "/var/www/fip/SlayFIP/temporary_uploads/"+request.user.username
+        if not os.path.exists(targetDir):
+            os.makedirs(targetDir)
+        
+        if 'ajax_call' in request.POST:  
+            fileName = request.POST['fileName']     # you receive the file name as a separate post data
+            fileSize = request.POST['fileSize']          # you receive the file size as a separate post data
+            fileId = request.POST['fileId']              # you receive the file identifier as a separate post data
+            index =  request.POST['chunkIndex']          # the current file chunk index
+            totalChunks = int(request.POST['chunkCount'])     # the total number of chunks for this file
+            file_chunk = request.FILES['fileBlob']
+            target_file = targetDir +"/"+fileName
+            outfile = targetDir+"/"+fileName
+        
+            target_file = target_file + "_" +str(index)
+            
+            if(chunk_handler(file_chunk,target_file)):
+                chunks = get_chunk_list(targetDir,fileName+"_")
+                allChunksUploaded = len(chunks) == totalChunks
+                if allChunksUploaded:
+                    combineChunks(chunks, outfile, cleanup=True)
+                    request.session['fileName'] = fileName
+    
+            return_values = {
+                'chunkIndex': index,
+                'initialPreviewConfig':
+                    {
+                        'type':'other',
+                        'caption': fileName,
+                        'key':fileId, 
+                        'fileId': fileId,
+                        'size': fileSize,
+                    },
+                'append': True}
+    
+            return StreamingHttpResponse(json.dumps(return_values))
+    if "google_drive_upload" in request.POST:
+        if not request.session["fileName"]:
+            return redirect("/catinfo/?error=Unable to find file to upload")
+        fileName = request.session["fileName"]
+        outfile = targetDir+"/"+fileName
+        file_blob = ContentFile(open(outfile,'rb').read())
+        storage = GoogleDriveStorage()
+        path = storage.save('FIPlog/'+fileName,file_blob)
+        cat = Cats.objects.get(id=request.POST["cat_name"])
+        foo = BloodWork(
+        bloodname = request.POST["bloodname"],
+        cat_name = cat,
+        bloodwork_date = request.POST["bloodwork_date"],
+        notes = request.POST["notes"],
+        bloodwork = path,
+        
+        )
+        foo.save()
+        # Cleanup Temp Files in User's upload folder
+        for filename in os.listdir(targetDir):
+            file_path = os.path.join(targetDir, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print('Failed to delete %s. Reason: %s' % (file_path, e))
+        
+        return redirect("/catinfo/?message=success&CatID="+request.POST["cat_name"])
     else:
         form = BloodWorkForm()
 
     return redirect('/catinfo')
 
+def get_chunk_list(mypath, slug):
+    from os import listdir
+    from os.path import isfile, join
+    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+    return [mypath+"/"+x for x in onlyfiles if slug in x]
+    
+def chunk_handler(data,targetfile):
+    with open(targetfile, 'wb+') as destination:
+        for chunk in data.chunks():
+            destination.write(chunk)
+    return True
 
+def combineChunks(chunk_list, outFile, cleanup=False):
+    with open(outFile, 'wb+') as destination:
+        for chunk in chunk_list:
+            content = open(chunk,'rb').read()
+            destination.write(content)
+            
+    if cleanup:
+        for chunk in chunk_list:
+            os.remove(chunk)
+        
+            
 
 def load_file(request):
     cat = Cats.objects.get(id=8)
@@ -810,6 +906,14 @@ def track_warrior(request):
     if request.method == "POST":
         share_hash = parse_sharable_url(request.POST["share_link"])
         share_name = request.POST["identifier"]
+        
+        exist = WarriorTracker.objects.filter(user = request.user).filter(md5hash=share_hash).count()
+        if exist > 0:
+            return redirect("/trackwarrior/?error=You already following this cat")
+            
+
+        if len(share_name)<=1:
+            return redirect("/trackwarrior/?error=Please enter a longer name to identify this cat")
 
         if share_hash:
             sh = WarriorTracker(
@@ -878,8 +982,8 @@ def costs(request):
 
     table = []
 
-    if "CatWeight" and "FIPType" and "CatAge" in request.GET:
-
+    if "CatWeight" in request.GET and "FIPType" in request.GET and "CatAge" in request.GET:
+        
         if request.GET["FIPType"]=="dry":
             dosage=10
         else:

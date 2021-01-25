@@ -31,10 +31,17 @@
       <div class="form-row col-md-6 mb-3">
         <label for="inputWeight">Cat's Weight</label>
         <div class="input-group mb-3">
-            <input class="form-control" required type="number" step="0.01" name="CatWeight" value="{{ request.GET.CatWeight }}" id="inputWeight" onchange="get_dosage()">
+            <input class="form-control" required type="number" max="30" step="0.01" name="CatWeight" value="{{ request.GET.CatWeight }}" id="inputWeight" onchange="get_dosage()">
             <div class="form-group-append">
               <span id="kg_units" class="input-group-text">{% if request.GET.weight_units %} kg {% else %}lb{% endif %}</span>
             </div>
+
+            <small id="weight_note" class="form-text text-muted">
+              Make sure the value you enter corresponds to the correct units.  This can be tricky for small kittens.
+              <ul><li>To convert from grams to kg, divide your scale measurement by 1000.</li>
+              <li>To convert from oz to lb, divide your scale measurement by 16.</li>
+            </ul>
+            </small>
 
         </div>
       </div>
@@ -42,7 +49,7 @@
         <label for="Dose">GS Dosage</label>
         <div class="input-group mb-3">
 
-            <input required class="form-control" value="{{ request.GET.GSDose }}" type="number" name="GSDose" class="form-control" id="GSDose" max="50" aria-describedby="dose_note" onchange="get_dosage()">
+            <input required class="form-control" value="{{ request.GET.GSDose }}" type="number" name="GSDose" class="form-control" id="GSDose" max="30" aria-describedby="dose_note" onchange="get_dosage()">
 
             <div class="form-group-append">
               <span class="input-group-text">mg/kg</span>

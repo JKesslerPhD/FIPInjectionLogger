@@ -3,6 +3,9 @@
 {% block maincontent %}
 
 {% if catnum >= 1 and not request.GET.CatID %}
+
+
+
 <main role="main">
 <div class="container">
 {{shared}}
@@ -36,7 +39,8 @@
 <main role="main">
   <div class="container">
 
-    {% if cat.id %}
+
+    {% if cat.id and cat.owner == request.user %}
     <div class="alert alert-primary row align-items-center">
       <div class="col-md-3">
         <a id="sharable_link" href="/catinfo?CatID=0&sharable={{sharable}}" onclick="copy_sharable();">Sharable Link</a>
@@ -47,11 +51,36 @@
     </div>
     {% endif %}
 
+    {% if cat.owner != request.user %}
+    <div class="alert alert-primary">
+    <form method="POST" action="/trackwarrior/">
+      {% csrf_token %}
+      <h4 class="alert-heading">
+        Follow this cat
+      </h4>
+      <hr>
+      <div class="form-row">
+        <input type ="hidden" name="share_link" id="share_link" value="{{request.GET.sharable}}"></input>
+        <div class="col">
+          <input class="form-control" id="identifier" name="identifier" placeholder="Enter your identifier for this Cat"></input>
+          <label for="identifier">Cat/Person Identifier</label>
+        </div>
+
+        <div class="col">
+          <input type="submit" class="form-control button btn-success" value="Follow Cat" name="submit_follow"></input>
+
+        </div>
+      </div>
+    </form>
+    </div>
+    {% endif %}
+
     <div class="alert alert-secondary">
       <form class="needs-validation" novalidate action="/catinfo/" id="catinfo" method="POST">
         {% csrf_token %}
 
-        {% if request.GET.cured == 'True' or cat.cured == 'True' %}
+        {% if request.GET.cured == 'True' or cat.cured == 'True' or cat.bad == 'True' %}
+        <div>How is your cat doing?</div>
         <div class="alert alert-success">
           <div class="row">
             <div class="col-sm-2">
@@ -62,8 +91,24 @@
             </div>
             <div class="col">
               <div class="custom-control custom-switch">
-                <input name="cured"{% if request.GET.sharable %} disabled {% endif %} {% if cat.cured %} checked {% endif %} onclick="submit();" type="checkbox" class="custom-control-input" id="cured">
+                <input name="cured"{% if request.GET.sharable %} disabled {% endif %} {% if cat.cured %} checked {% endif %} type="checkbox" class="custom-control-input" id="cured">
                 <label class="custom-control-label" for="cured">My Cat has been cured!</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-danger">
+          <div class="row">
+            <div class="col-sm-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+              </svg>
+            </div>
+            <div class="col">
+              <div class="custom-control custom-switch">
+                <input name="bad_outcome"{% if request.GET.sharable %} disabled {% endif %} {% if cat.bad %} checked {% endif %} type="checkbox" class="custom-control-input" id="bad_outcome">
+                <label class="custom-control-label" for="bad_outcome">My cat didn't make it</label>
               </div>
             </div>
           </div>
@@ -259,6 +304,7 @@
           </table>
         </div>
         {% endif %}
+        {% if not request.GET.sharable %}
         <div id="upload_modal">
           <button {% if request.GET.sharable %} disabled {% endif %} type="button" class="btn btn-primary" data-toggle="modal" data-target="#bw-modal">
           Upload CBC
@@ -276,7 +322,9 @@
                       <div class="modal-body">
 
                           {% csrf_token %}
-                          <input type="hidden" name="cat_name" value="{{request.GET.CatID}}">
+
+
+                          <input id="cbc_catid" type="hidden" name="cat_name" value="{{request.GET.CatID}}">
                           <div class="row">
                             <div class="col-md-6 mb-3">
                               <div class="form-group">
@@ -290,17 +338,6 @@
                                 </select>
                               </div>
                             </div>
-                           </div>
-                           <div class="row">
-                             <div class="col-md-6 mb-3">
-                               <div class="form-group">
-                                 <label for="id_bloodwork" class="control-label">Choose Bloodwork File</label>
-                                 <input type="file" name="bloodwork" id="id_bloodwork" accept=".jpg,.gif,.png,.pdf">
-
-                                 <div><small>Must be a .pdf or image file.</small></div>
-
-                               </div>
-                             </div>
                            </div>
                            <div class="row">
                              <div class="col-md-6 mb-3">
@@ -321,10 +358,24 @@
                                </div>
                              </div>
                            </div>
+                           <div class="row">
+                             <div class="col-md-6 mb-3">
+                               <div class="form-group">
+                                 <label for="id_bloodwork" class="control-label">Choose Bloodwork File</label>
+                                 <input id="fileupload_box" type="file" name="bloodwork" id="id_bloodwork" accept=".jpg,.gif,.png,.pdf">
+
+                                 <div><small>Must be a .pdf or image file.</small></div>
+
+                               </div>
+                             </div>
+                           </div>
+                      </div>
+                      <div>
+                        <input type="hidden" name="google_drive_upload" id="returned_status" value="">
                       </div>
                       <div class="modal-footer">
                           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                          <button id="btnSubmitModal" {% if request.GET.sharable %} disabled {% endif %} type="submit" class="btn btn-info">Upload File</button>
+                          <button id="btnSubmitModal" disabled  type="submit" class="btn btn-info">Submit Bloodwork</button>
                       </div>
                     </form>
                     </div>
@@ -332,15 +383,46 @@
               </div>
             </div>
             <!--End Modal-->
+            {% endif %}
         </div>
 
       </div>
 
     </div>
   </div>
+
 </main>
 
+
+
+
 <script>
+{% if request.GET.cured == 'True' or cat.cured == 'True' or cat.bad == 'True' %}
+$(document).on("change", '#cured', function(event){
+  var form = document.getElementById("catinfo")
+  var cured = document.getElementById('cured');
+  var bad = document.getElementById('bad_outcome');
+  if (cured.checked == true) {
+    bad.checked = false;
+  };
+
+form.submit()
+   });
+
+ $(document).on("change", '#bad_outcome', function(event){
+   var form = document.getElementById("catinfo")
+   var cured = document.getElementById('cured');
+   var bad = document.getElementById('bad_outcome');
+   if (bad.checked == true) {
+     cured.checked = false;
+   }
+form.submit()
+    });
+
+
+
+{% endif %}
+
 function copy_sharable(e) {
   /* Get the text field */
   var copyText = document.getElementById("sharable_link").href;
@@ -383,6 +465,57 @@ $('input.datepicker').Zebra_DatePicker({
 
 
 </script>
+{% if not request.GET.sharable %}
+<script>
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const cat_name = {{request.GET.CatID}}
+
+    $('#fileupload_box').on('filebatchpreupload', function(event, data, jqXHR) {
+    data.form.append('bloodwork_date', document.getElementById("id_bloodwork_date").value);
+    data.form.append('bloodname', document.getElementById("id_bloodname").value);
+    data.form.append('notes', document.getElementById("id_notes").value);
+
+            });
+
+    $("#fileupload_box").fileinput({
+        maxFileSize: 3000,
+        uploadUrl: "/upload_cbc/",
+        enableResumableUpload: true,
+        resumableUploadOptions: {
+           // uncomment below if you wish to test the file for previous partial uploaded chunks
+           // to the server and resume uploads from that point afterwards
+           // testUrl: "http://localhost/test-upload.php"
+        },
+        uploadExtraData: {
+          'csrfmiddlewaretoken': csrftoken,
+          'cat_name': cat_name,
+          'ajax_call':true
+
+        },
+        maxFileCount: 1,
+        allowedFileTypes: ['image','pdf'],    // allow only images
+        showCancel: true,
+        initialPreviewAsData: false,
+        overwriteInitial: false,
+        // initialPreview: [],          // if you have previously uploaded preview files
+        // initialPreviewConfig: [],    // if you have previously uploaded preview files
+        theme: 'fas'
+        //deleteUrl: "http://localhost/file-delete.php"
+    }).on('fileuploaded', function(event, previewId, index, fileId) {
+        console.log('File Uploaded', 'ID: ' + fileId + ', Thumb ID: ' + previewId);
+    }).on('fileuploaderror', function(event, data, msg) {
+        console.log('File Upload Error', 'ID: ' + data.fileId + ', Thumb ID: ' + data.previewId);
+
+    }).on('filebatchuploadcomplete', function(event, preview, config, tags, extraData) {
+        console.log('File Batch Uploaded', preview, config, tags, extraData);
+        document.getElementById("btnSubmitModal").disabled = false;
+        //location.replace("?message=success&CatID="+cat_name);
+    });
+</script>
+{% endif %}
+
+
+
 <style type="text/css">
 
 

@@ -17,6 +17,41 @@ class Database():
         self.weight = None
         self.summary = None
         self.quality = None
+        self.email_list = None
+        
+    def get_email_list(self):
+        query = """
+                Select * from (
+        select
+       	username,
+	email,
+	relapse_start,
+       	count(InjectionLog_injectionlog.id) as LogEntries,
+       	cast(julianday(max(InjectionLog_injectionlog.injection_time)) -	julianday(min(InjectionLog_injectionlog.injection_time)) as int) as days_from_logs,
+	case 
+	   when relapse_start not NULL then
+		cast(julianday(date('now')) -	julianday(relapse_start) as int)
+	   else
+		cast(julianday(date('now')) -	julianday(min(InjectionLog_injectionlog.injection_time))-extended_treatment as int) 
+	end as days_from_time,
+       	round((julianday(date('now')) - julianday(birthday))/365,0) as cat_age,
+       	(max(InjectionLog_injectionlog.cat_weight)-min(InjectionLog_injectionlog.cat_weight))/min(InjectionLog_injectionlog.cat_weight)/cast(julianday(max(InjectionLog_injectionlog.injection_time)) -	julianday(min(InjectionLog_injectionlog.injection_time)) as int)*100 as cat_weight,
+       	InjectionLog_cats.*
+
+        from
+       	InjectionLog_cats, InjectionLog_injectionlog, auth_user
+		left join InjectionLog_relapsedate on InjectionLog_cats.id = InjectionLog_relapsedate.cat_name_id
+        where
+       	injectionlog_cats.owner_id not in (Select user_id from InjectionLog_userextension where test_account =1) and
+       	InjectionLog_cats.id = InjectionLog_injectionlog.cat_name_id and
+       	InjectionLog_injectionlog.active=1 and
+       	injectionLog_cats.owner_id = auth_user.id
+        group by injectionLog_cats.id ) where LogEntries>2 and days_from_time > 168 and (cured = 0 and bad=0)
+        """
+        if not self.email_list:
+            self.email_list = df = pd.read_sql(query, self.engine)
+
+        return df
     
     def get_cat_quality(self):
         query = """

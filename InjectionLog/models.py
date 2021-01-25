@@ -32,6 +32,7 @@ class Cats(models.Model):
     test_cat = models.BooleanField(default=False)
     sharable = models.CharField(max_length=32, null=True)
     cured = models.BooleanField(default=False)
+    bad = models.BooleanField(default=False)
 
 class FixTimezone(models.Model):
     owner = models.ForeignKey(User, on_delete = models.PROTECT)
@@ -110,7 +111,7 @@ class WarriorTracker(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)
     md5hash = models.CharField(max_length=32, null=True)
     identifier = models.CharField(max_length=200, null=True)
-
+    
 class BloodSummary(models.Model):
     cat_name = models.ForeignKey(Cats, on_delete = models.CASCADE, null=False)
     bt_date  = models.DateField(default = date.today)

@@ -8,13 +8,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         data = Database()
         email_list = data.get_email_list()
-        
+
         all_emails = "; ".join(email_list["email"])
         email = EmailMessage('Please update your cat\'s profile', "CRON Job Executed.  Users should be entering cat updates. \n The email was sent to %s" % all_emails, to=["jeff.kessler@gmail.com"])
         email.content_subtype = "html"
         email.send()
         for index, row in email_list.iterrows():
-            
+
             email_message = """
             <html>
             <head></head>
@@ -28,7 +28,7 @@ class Command(BaseCommand):
             <p>Please complete the following steps:
                 <ol>
                 <li>Log in to FIPLog.com using your username: %s</li>
-                <li>You should see a notice linking to your <a href="http://localhost:8080/catinfo/?CatID=%i&cured=True">cat's profile</a></li>
+                <li>You should see a notice linking to your <a href="https://fiplog.com/catinfo/?CatID=%i&cured=True">cat's profile</a></li>
                 <li>Indicate whether or not your cat has been cured</li>
                 </ol>
             <p>Our system will send this message to you once a week until you update your cat's record.  If you experience any problems, please email the <a href="mailto:jeff.kessler@gmail.com">FIPLog.com admin</a>
@@ -39,8 +39,8 @@ class Command(BaseCommand):
             </html>
             
             """ % (row["username"],row["name"],row["name"],row["name"],row["username"],row["id"])
-            
+
             send_to = row["email"]
-            email = EmailMessage('Please update your cat\'s profile', email_message, to=[send_to])
+            email = EmailMessage('FIPLog.com - Was your cat cured?', email_message, to=[send_to])
             email.content_subtype = "html"
             email.send()

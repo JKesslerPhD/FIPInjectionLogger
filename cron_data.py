@@ -273,7 +273,7 @@ class Analysis():
         
         weight["cat_age"] = weight["cat_age"].astype('float')
 
-        model = smf.ols(formula="pct_change ~ 0 + start_wt + days + cat_age", data=weight).fit()
+        model = smf.ols(formula="pct_change ~ 0 + start_wt+days + cat_age", data=weight).fit()
         mult = model.params["days"]
         try:
             ints = model.params["Intercept"]
@@ -398,12 +398,16 @@ class Analysis():
         observation_cats = summary[(summary["days_from_time"]>84) & (summary["days_from_time"]<168)].count()[0]
         post_treatment = summary[summary["days_from_time"]>84].count()[0]
         cured_cats = summary[summary["cured"]>0].count()[0]
+        bad_outcome = summary[summary["bad"]>0].count()[0]
         relapse = summary[~summary["relapse_start"].isnull()]
         relapse_treatment = relapse[relapse["days_from_time"]<=84].count()[0]
-        relapse_rate = relapse.count()[0]/post_treatment
+        relapse_rate = relapse.count()[0]/post_treatment*100
+        unknown_status = post_treatment - observation_cats - bad_outcome - cured_cats
         
-        results = {"being_treated":being_treated, "obseration_cats":observation_cats, "post_treatment":post_treatment,
-                    "cured_cats":cured_cats, "relapse_cats":relapse_treatment,"total_relapse":relapse.count(0)[0]}
+        results = {"being_treated":int(being_treated), "obseration_cats":int(observation_cats), "post_treatment":int(post_treatment),
+                    "cured_cats":int(cured_cats), "relapse_cats":int(relapse_treatment),
+                    "total_relapse":int(relapse.count(0)[0]), "relapse_rate":float(relapse_rate),
+                    "unk":int(unknown_status), "bad_outcome":int(bad_outcome)}
         
         return results
 
@@ -422,6 +426,7 @@ def generate_graphs(output_file="data_output.txt"):
     graph_wt_change = an.generate_weight_figure(weight)
     graph_quality = an.generate_quality_stats(quality)
     brand_stats = an.generate_brand_stats(quality)
+    treatment_stats = an.generate_treatment_stats(summary)
 
     combined_dict = {
         "summary":graph_summary,
@@ -429,7 +434,8 @@ def generate_graphs(output_file="data_output.txt"):
         "fip_stats":graph_fip_stats,
         "weight":graph_wt_change,
         "quality":graph_quality,
-        "brands":brand_stats
+        "brands":brand_stats,
+        "treatment_stats":treatment_stats
     }
 
     an.save_file(combined_dict,output_file)

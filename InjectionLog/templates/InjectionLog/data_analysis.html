@@ -15,6 +15,31 @@
 
     </div>
 
+    <div class="card border-dark bg-light mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Treatment Outcomes for Logged Cats</h5>
+          <div class="row">
+            <div class="col text-danger">Relapse Rate: {{treatment_stats.relapse_rate}}%</div>
+          </div>
+          <div class="row">
+            <div class="col text-success">Cured Cats: {{treatment_stats.cured_cats}}</div>
+            <div class="col">Cat did not recover: {{treatment_stats.bad_outcome}}</div>
+            <div class="col">Unknown Treatment Outcome: {{treatment_stats.unk}}</div>
+          </div>
+          <div class="row">
+            <div class="col">Cats currently in observation: {{treatment_stats.obseration_cats}}</div>
+            <div class="col">Cats currently being treated: {{treatment_stats.being_treated}}</div>
+            <div class="col"></div>
+
+          </div>
+
+
+
+      </div>
+
+
+    </div>
+
     <div class="align-middle">
 
         {% autoescape off %}

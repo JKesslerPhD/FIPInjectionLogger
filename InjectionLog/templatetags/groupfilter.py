@@ -52,8 +52,11 @@ def max_time(td):
 
 @register.filter
 def elapsed(td, extended=0):
-    difference = datetime.now().date()-(td+timedelta(days=extended))
-    return difference.days
+    try:
+        difference = datetime.now().date()-(td+timedelta(days=extended))
+        return difference.days
+    except:
+        return 0
 
 @register.filter
 def parse_url(url):

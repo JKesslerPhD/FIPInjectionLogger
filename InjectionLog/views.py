@@ -948,9 +948,10 @@ def data_analysis(request):
     cured_cats = data["distribution"]["cured_cats"]
     cat_quality = data["quality"]["graph"]
     brand_div = data["brands"]["graph"]
+    treatment_stats = data["treatment_stats"]
 
 
-    return render(request, "InjectionLog/data_analysis.html",{"page":"data","brand_stats":brand_div, "duration_fig":duration_div, "cat_quality":cat_quality, "cured_cats":cured_cats, "84_cats":past_initial_treatment,"age_fig":age_div,"fip_fig":fip_div,"wt_fig":wt_div, "dry_cases":total_cats["0"],"wet_cases":total_cats["1"]})
+    return render(request, "InjectionLog/data_analysis.html",{"page":"data","brand_stats":brand_div, "duration_fig":duration_div, "cat_quality":cat_quality,"treatment_stats":treatment_stats, "cured_cats":cured_cats, "84_cats":past_initial_treatment,"age_fig":age_div,"fip_fig":fip_div,"wt_fig":wt_div, "dry_cases":total_cats["0"],"wet_cases":total_cats["1"]})
 
 def vet_info(request):
     return render(request,"InjectionLog/vet_info.html",{"page":"vetinfo"})
@@ -994,7 +995,7 @@ def costs(request):
         except:
             return redirect("/costs/?error=Error: Please enter a Cat's Weight and Age")
         for i in range(85):
-            calc_wt = round((mult*i+stwt*wt+ints+1+age*ct_age)*wt,1)
+            calc_wt = round((1+mult*i+stwt*wt+ints+age*ct_age)*wt,1)
             if calc_wt>wt:
                 use_wt = calc_wt
             else:
@@ -1014,7 +1015,7 @@ def costs(request):
                 "amount":"%.2f mL" % amount
                 })
 
-    params = "Percent Change from Start = %f x [treatment day] + %f x [starting weight] + %f [cat age]" % (mult,stwt, age)
+    params = "Percent Change from Start = %f x [treatment day] + %f x [starting weight] + %f [cat age] " % (mult,stwt, age)
 
     return render(request, "InjectionLog/costs.html",{"page":"costs", "model":mult, "amount":math.ceil(total_vol/5/.96), "loop":table,"total_cost":"${:.2f}".format(round(total_cost/100,0)*100), "params":params})
 

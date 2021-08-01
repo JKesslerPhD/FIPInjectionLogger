@@ -50,7 +50,7 @@
     {% for injection in injections %}
       <tr>
         {% with treatment_start|date:'m/d/Y'|add:"|"|add:local_time as start_string %}
-        <td id="Day {{injection.injection_time|getday:start_string}}"><a href="#" data-toggle="tooltip" title="Day {{injection.injection_time|getday:start_string}} - {{ injection.injection_time|date:'h:i a'}} ">{{ injection.injection_time|date:'m/d/Y'}}</a> </td>
+        <td id="Day {{injection.injection_time|getday:start_string}}"><a href="#" data-toggle="tooltip" title="Day {{injection.injection_time|getday:start_string}} - {{ injection.injection_time|date:'h:i a'}} ">{{ injection.injection_time|date:'m/d/Y'}}</a> <br>(Day {{injection.injection_time|getday:start_string}})</td>
         {% endwith %}
         <td>{{ injection.cat_weight }} {{injection.wt_units}}</td>
         <td>{{ injection.cat_behavior_today}}</td>

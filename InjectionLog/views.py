@@ -525,6 +525,11 @@ def recordinjection(request):
         except:
             return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"Invalid Date Time Format Entered. Must be YYYY-MM-DD HH:MM AM/PM"})
         rating = request.POST["cat_rating"]
+        try:
+              int(rating)
+        except:
+            return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"There was an error with the value entered for how your cat is doing."})
+        
         amount = request.POST["calculateddose"]
         i_note = request.POST["injectionnotes"]
         o_note = request.POST["othernotes"]
@@ -546,8 +551,14 @@ def recordinjection(request):
             ns = False
 
         if "gabadose" in request.POST:
-            gabadose = request.POST["gabadose"]
+            try:
+                gabadose = int(request.POST["gabadose"])
+            except:
+                gabadose = None
         else:
+            gabadose = None
+            
+        if isinstance(gabadose, str):
             gabadose = None
 
         unit = "lb"
@@ -666,9 +677,9 @@ def change_record(request):
         tz = pytz.timezone(local_time)
         i_date = request.POST["inj_date"]
         try:
-            i_date = datetime.strptime(i_date,"%Y-%m-%d %I:%M %p")
+            i_date = datetime.strptime(i_date,"%Y-%m-%d %H:%M %p")
         except:
-            return redirect("/log/?error=Invalid Date Format Entered&selectedcat=%s" % request.POST["cat_name"])
+            return redirect("/log/?error=Invalid Date Format Entered:%s&selectedcat=%s" % (i_date, request.POST["cat_name"]))
         record = InjectionLog.objects.get(id=request.POST["inj_id"])
         record.injection_time = timezone.make_aware(i_date,tz,True)
         record.cat_behavior_today = request.POST["cat_rating"]

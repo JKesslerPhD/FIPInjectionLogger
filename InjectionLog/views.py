@@ -135,6 +135,8 @@ def main_site(request):
         sc.save()
     
     brand_plot=cat_stats(sc)
+    
+    res = None
 
     try:
         ht_val = 220
@@ -211,7 +213,7 @@ def main_site(request):
     else:
         grouping = None
     injections = InjectionLog.objects.filter(owner=request.user)
-    return render(request, template, {"page":page, "cat_quality":cat_quality, "brand_plot":brand_plot, "date_stamp":date_stamp, "progress":inj_progress,"sc":sc, "tz":tz, "tz_list":tz_list, "user_defined_timezone":user_defined_tz, "relapse":relapse, "treatment_duration":treatment_duration.days,"grouping":grouping,"validcats":validcats,"time_info":now.utcoffset})
+    return render(request, template, {"page":page, "cat_quality":cat_quality, "brand_plot":brand_plot, "date_stamp":date_stamp, "progress":inj_progress,"sc":sc, "tz":tz, "tz_list":tz_list, "user_defined_timezone":user_defined_tz, "relapse":relapse, "treatment_duration":treatment_duration.days,"grouping":grouping,"validcats":validcats,"time_info":now.utcoffset, "wt_array":res[::-1]})
 
 def sharable_hash(cat, user):
     key1 = str(cat).encode('utf-8')

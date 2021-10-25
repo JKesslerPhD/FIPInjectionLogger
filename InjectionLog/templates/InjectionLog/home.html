@@ -434,9 +434,28 @@
     {% endif %}
     {% endif %}
 
+    <div class="modal fade alert-danger" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Have you checked your cat's weight?</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="modal-body">
+             It is important to re-weigh your cat so that you are giving them the correct amount of GS.  Please check with your admin for more information.
+            <br><br><font class="small">You are seeing this message because your cat's weight on the treatment log does not appear to have changed recently.</font>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
     <div class="jumbotron container-fluid">
-
-
 
       {% if grouping %}
       <div class="alert alert-warning">
@@ -659,5 +678,16 @@ function saveAs(uri, filename) {
     }
 };
 </script>
+
+{% if wt_array|length >= 4 %}
+  {% if wt_array.0 == wt_array.3 %}
+
+<script type="text/javascript">
+    $(window).on('load', function() {
+        $('#myModal').modal('show');
+    });
+</script>
+  {% endif %}
+{% endif %}
 
 {% endblock %}

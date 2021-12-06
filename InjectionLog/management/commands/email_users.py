@@ -14,7 +14,7 @@ class Command(BaseCommand):
         email.content_subtype = "html"
         email.send()
         for index, row in email_list.iterrows():
-
+            sharable_hash = row["sharable"]
             email_message = """
             <html>
             <head></head>
@@ -37,7 +37,7 @@ class Command(BaseCommand):
             <p>Jeff
             </body>
             </html>
-            
+
             """ % (row["username"],row["name"],row["name"],row["name"],row["username"],row["id"])
 
             send_to = row["email"]

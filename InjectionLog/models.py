@@ -128,4 +128,16 @@ class BloodSummary(models.Model):
     glob = models.DecimalField(null=True, max_digits=4, decimal_places=2)
     a_g = models.DecimalField(null=True, max_digits=4, decimal_places=2)
     tbil = models.DecimalField(null=True, max_digits=4, decimal_places=2)
+
+class Prompts(models.Model):
+    cat_name = cat_name = models.ForeignKey(Cats, on_delete = models.CASCADE, null=False)
+    day_3 = models.BooleanField(default=False)
+    day_77 = models.BooleanField(default=False)
+    day_30 = models.BooleanField(default=False)
+    
+    
+   
+    
+    
+    
     

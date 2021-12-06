@@ -111,6 +111,21 @@
               </div>
               <input type="hidden" name="cat_name" value="{{cat.id}}">
               <input type="hidden" name="inj_id" value="{{injection.id}}">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <div class="form-group">
+                   <div class="form-row">
+                     <label for="id_dose" class="control-label">Cat's Weight</label>
+                     <div class="input-group">
+                       <input class="form-control" name="cat_weight" value="{{ injection.cat_weight }}"></input>
+                       <div class="form-group-append">
+                         <span class="input-group-text">{{injection.wt_units}}</span>
+                       </div>
+                     </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div class="form-row">
                 <div class="col-md-6 mb-3">
                   <div class="form-group">
@@ -127,6 +142,8 @@
               </div>
               <div class="container">
                 <div class="row" style="width:300px">
+
+
                   <div class="col" style="text-align:left">
                     <small class="form-text">
                     I'm worried
@@ -178,6 +195,7 @@
                    </div>
                  </div>
                </div>
+
                <div class="row">
                  <div class="col-md-6 mb-3">
                    <div class="form-group">

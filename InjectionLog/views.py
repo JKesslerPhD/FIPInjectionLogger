@@ -6,6 +6,7 @@ from django.db.models.functions import Cast
 from django.contrib.auth import authenticate, login
 from .models import InjectionLog, GSBrand, Cats, UserGS, SelectedCat
 from .models import UserExtension, RelapseDate, ObservationLog, BloodWork, FixTimezone
+from .models import Prompts
 from .forms import BloodWorkForm
 from django.contrib.auth.forms import UserCreationForm
 from .forms import AddGS, RegisterForm
@@ -105,8 +106,13 @@ def main_site(request):
     local_time = pytz.timezone(tz)
     now = datetime.now(local_time)
     date_stamp = None
-    
+
     unaware = datetime.now()
+    
+            
+        
+        
+    
     try:
         user_defined_tz = FixTimezone.objects.get(owner=request.user).timezone
         tz_list = None
@@ -115,7 +121,7 @@ def main_site(request):
         tz_list = []
         for time in pytz.all_timezones:
             tz_list.append(time)
-        
+
     validcats = Cats.objects.filter(owner=request.user)
     if not SelectedCat.objects.filter(user=request.user).exists():
         if Cats.objects.filter(owner=request.user).exists():
@@ -133,10 +139,43 @@ def main_site(request):
         sc = SelectedCat.objects.get(user=request.user)
         sc.cat_name=cat
         sc.save()
-    
+
+    if "ack" in request.GET and sc:
+        if not Prompts.objects.filter(cat_name = sc.cat_name).exists():
+            prompt = Prompts(cat_name = sc.cat_name)
+        
+        else:
+            prompt = Prompts.objects.get(cat_name = sc.cat_name)
+        
+        ack = int(request.GET["ack"])
+
+        boolean = request.GET["day_res"]
+        if boolean == "Yes":
+            boolean = 1
+        else:
+            boolean = 0
+            
+        if ack == 3:
+            prompt.day_3 = boolean
+        
+        if ack == 77:
+            prompt.day_77 = boolean
+        
+        if ack == 30:
+            if boolean == 0:
+                prompt.day_30 = 1
+        
+        prompt.save()
+            
+            
     brand_plot=cat_stats(sc)
-    
+
     res = None
+    
+    try:
+        prompt = Prompts.objects.get(cat_name = sc.cat_name)
+    except:
+        prompt = None
 
     try:
         ht_val = 220
@@ -148,26 +187,26 @@ def main_site(request):
         wt_unit = [x.wt_units for x in quality][0]
         fig = px.line(res, height=ht_val)
         fig.update_xaxes(visible=False, fixedrange=True)
-    
-        
+
+
         fig.update_layout(
             showlegend=False,
             plot_bgcolor="white",
             yaxis_title="Cat's Weight (%s)" % wt_unit,
             margin=dict(t=10,l=10,b=10,r=10)
         )
-        
+
         fig.update_yaxes(
-        visible=True, 
+        visible=True,
         fixedrange=True,
         title_text = "Cat's Weight (%s)" % wt_unit,
         title_font_size = 10)
-        
+
         fig.update_traces(
         hoverinfo='skip',
         hovertemplate=None)
         cat_quality = plot(fig, output_type="div", include_plotlyjs="cdn")
-        
+
     except:
         cat_quality = ""
 
@@ -213,7 +252,11 @@ def main_site(request):
     else:
         grouping = None
     injections = InjectionLog.objects.filter(owner=request.user)
-    return render(request, template, {"page":page, "cat_quality":cat_quality, "brand_plot":brand_plot, "date_stamp":date_stamp, "progress":inj_progress,"sc":sc, "tz":tz, "tz_list":tz_list, "user_defined_timezone":user_defined_tz, "relapse":relapse, "treatment_duration":treatment_duration.days,"grouping":grouping,"validcats":validcats,"time_info":now.utcoffset, "wt_array":res[::-1]})
+    try:
+        wt_array = res[::-1]
+    except:
+        wt_array = []
+    return render(request, template, {"page":page, "prompt":prompt, "cat_quality":cat_quality, "brand_plot":brand_plot, "date_stamp":date_stamp, "progress":inj_progress,"sc":sc, "tz":tz, "tz_list":tz_list, "user_defined_timezone":user_defined_tz, "relapse":relapse, "treatment_duration":treatment_duration.days,"grouping":grouping,"validcats":validcats,"time_info":now.utcoffset, "wt_array":wt_array})
 
 def sharable_hash(cat, user):
     key1 = str(cat).encode('utf-8')
@@ -229,7 +272,7 @@ def catinfo(request):
     relapse = None
     validcats = Cats.objects.filter(owner=request.user)
     pattern="^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$"
-    
+
     if request.method == "POST":
         if request.POST["CatID"]:
 
@@ -240,7 +283,7 @@ def catinfo(request):
                 c.bad = False
             else:
                 c.cured = False
-            
+
             if "bad_outcome" in request.POST:
                 c.cured = False
                 c.bad = True
@@ -288,7 +331,7 @@ def catinfo(request):
                 treatment_date = request.POST["treatmentstart"]
             else:
                 treatment_date = None
-            
+
             if not re.match(pattern, request.POST["CatBirthday"]):
                 return redirect("/catinfo?error=Cat's birthday not entered. Please enter a value.&CatID=0")
 
@@ -531,19 +574,19 @@ def recordinjection(request):
               int(rating)
         except:
             return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"There was an error with the value entered for how your cat is doing."})
-        
+
         amount = request.POST["calculateddose"]
         i_note = request.POST["injectionnotes"]
         o_note = request.POST["othernotes"]
-        
+
         if float(weight) > 30:
             return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"You entered a weight for your cat that appears unrealistic.  Please check your weight and units, and try again"})
-            
-        
+
+
         if float(amount) > 30:
             return render(request, template, {"page":page,"dose":True,"local_time":local_time, "drugs":drugs,"userGS":userGS, "validcats":validcats,"error":"The calculated dose appears to be too large or incorrect.  Please check that you have entered a correct weight, and press 'calculate'.  If this problem persists, report a bug."})
-            
-            
+
+
         if "new_symptom" in request.POST:
             newsymptom = request.POST["symptom_details"]
             if newsymptom!="":
@@ -559,7 +602,7 @@ def recordinjection(request):
                 gabadose = None
         else:
             gabadose = None
-            
+
         if isinstance(gabadose, str):
             gabadose = None
 
@@ -610,7 +653,7 @@ def injectionlog(request):
 
     template ='InjectionLog/injlog.html'
     page="log"
-    
+
     treatment_start = cat.treatment_start
     if "sharable" not in request.GET:
         sharable = False
@@ -682,17 +725,21 @@ def change_record(request):
             i_date = datetime.strptime(i_date,"%Y-%m-%d %H:%M %p")
         except:
             return redirect("/log/?error=Invalid Date Format Entered:%s&selectedcat=%s" % (i_date, request.POST["cat_name"]))
-        record = InjectionLog.objects.get(id=request.POST["inj_id"])
-        record.injection_time = timezone.make_aware(i_date,tz,True)
-        record.cat_behavior_today = request.POST["cat_rating"]
-        record.injection_amount = request.POST["injection_amount"]
-        record.new_symptom = request.POST["new_symptom"]
-        record.injection_notes = request.POST["injection_notes"]
-        record.other_notes = request.POST["other_notes"]
-        record.gaba_dose = request.POST["gaba_dose"]
+        try:
+            record = InjectionLog.objects.get(id=request.POST["inj_id"])
+            record.injection_time = timezone.make_aware(i_date,tz,True)
+            record.cat_behavior_today = request.POST["cat_rating"]
+            record.injection_amount = request.POST["injection_amount"]
+            record.new_symptom = request.POST["new_symptom"]
+            record.injection_notes = request.POST["injection_notes"]
+            record.other_notes = request.POST["other_notes"]
+            record.gaba_dose = request.POST["gaba_dose"]
+            record.cat_weight = request.POST["cat_weight"]
 
-        record.save()
-        return redirect("/log/?message=update&selectedcat=%s" % request.POST["cat_name"])
+            record.save()
+            return redirect("/log/?message=update&selectedcat=%s" % request.POST["cat_name"])
+        except:
+            return redirect("/log/?selectedcat=%s&error=The record was not changed. A value you entered was invalid." % request.POST["cat_name"])
 
 
 @login_required
@@ -802,8 +849,8 @@ def upload_file(request):
         targetDir = "/var/www/fip/SlayFIP/temporary_uploads/"+request.user.username
         if not os.path.exists(targetDir):
             os.makedirs(targetDir)
-        
-        if 'ajax_call' in request.POST:  
+
+        if 'ajax_call' in request.POST:
             fileName = request.POST['fileName']     # you receive the file name as a separate post data
             fileSize = request.POST['fileSize']          # you receive the file size as a separate post data
             fileId = request.POST['fileId']              # you receive the file identifier as a separate post data
@@ -812,28 +859,28 @@ def upload_file(request):
             file_chunk = request.FILES['fileBlob']
             target_file = targetDir +"/"+fileName
             outfile = targetDir+"/"+fileName
-        
+
             target_file = target_file + "_" +str(index)
-            
+
             if(chunk_handler(file_chunk,target_file)):
                 chunks = get_chunk_list(targetDir,fileName+"_")
                 allChunksUploaded = len(chunks) == totalChunks
                 if allChunksUploaded:
                     combineChunks(chunks, outfile, cleanup=True)
                     request.session['fileName'] = fileName
-    
+
             return_values = {
                 'chunkIndex': index,
                 'initialPreviewConfig':
                     {
                         'type':'other',
                         'caption': fileName,
-                        'key':fileId, 
+                        'key':fileId,
                         'fileId': fileId,
                         'size': fileSize,
                     },
                 'append': True}
-    
+
             return StreamingHttpResponse(json.dumps(return_values))
     if "google_drive_upload" in request.POST:
         if not request.session["fileName"]:
@@ -850,7 +897,7 @@ def upload_file(request):
         bloodwork_date = request.POST["bloodwork_date"],
         notes = request.POST["notes"],
         bloodwork = path,
-        
+
         )
         foo.save()
         # Cleanup Temp Files in User's upload folder
@@ -861,7 +908,7 @@ def upload_file(request):
                     os.unlink(file_path)
             except Exception as e:
                 print('Failed to delete %s. Reason: %s' % (file_path, e))
-        
+
         return redirect("/catinfo/?message=success&CatID="+request.POST["cat_name"])
     else:
         form = BloodWorkForm()
@@ -873,7 +920,7 @@ def get_chunk_list(mypath, slug):
     from os.path import isfile, join
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     return [mypath+"/"+x for x in onlyfiles if slug in x]
-    
+
 def chunk_handler(data,targetfile):
     with open(targetfile, 'wb+') as destination:
         for chunk in data.chunks():
@@ -885,12 +932,12 @@ def combineChunks(chunk_list, outFile, cleanup=False):
         for chunk in chunk_list:
             content = open(chunk,'rb').read()
             destination.write(content)
-            
+
     if cleanup:
         for chunk in chunk_list:
             os.remove(chunk)
-        
-            
+
+
 
 def load_file(request):
     cat = Cats.objects.get(id=8)
@@ -919,11 +966,11 @@ def track_warrior(request):
     if request.method == "POST":
         share_hash = parse_sharable_url(request.POST["share_link"])
         share_name = request.POST["identifier"]
-        
+
         exist = WarriorTracker.objects.filter(user = request.user).filter(md5hash=share_hash).count()
         if exist > 0:
             return redirect("/trackwarrior/?error=You already following this cat")
-            
+
 
         if len(share_name)<=1:
             return redirect("/trackwarrior/?error=Please enter a longer name to identify this cat")
@@ -997,7 +1044,7 @@ def costs(request):
     table = []
 
     if "CatWeight" in request.GET and "FIPType" in request.GET and "CatAge" in request.GET:
-        
+
         if request.GET["FIPType"]=="dry":
             dosage=10
         else:
@@ -1036,13 +1083,13 @@ def get_local_timezone(request):
     import requests
     if "tz" in request.session:
         return request.session["tz"]
-    
+
     try:
         user_defined_tz = FixTimezone.objects.get(owner=request.user).timezone
         request.session["tz"] = user_defined_tz
         return request.session["tz"]
     except:
-        
+
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]
@@ -1061,11 +1108,11 @@ def get_local_timezone(request):
 
 def cat_stats(sc):
     import numpy as np
-    
+
     data = Database()
     quality     = data.get_cat_quality()
     this_cat = pd.DataFrame()
-    
+
     results = quality.groupby(['week']).agg(
         behavior = pd.NamedAgg(column='cat_behavior_today', aggfunc=np.mean),
         stdev = pd.NamedAgg(column='cat_behavior_today',aggfunc=np.std),
@@ -1101,7 +1148,7 @@ def cat_stats(sc):
     this_cat = this_cat.groupby(["x"]).agg(
         quality=pd.NamedAgg(column="y", aggfunc=np.mean))
     this_cat.reset_index(inplace=True)
-    
+
     fig = go.Figure([
         go.Scatter(
             x=x,
@@ -1109,8 +1156,8 @@ def cat_stats(sc):
             showlegend=False,
             line=dict(color='rgb(0,100,80,.4)'),
             hoverinfo='skip',
-            mode='lines' 
-            
+            mode='lines'
+
         ),
         go.Scatter(
             x=this_cat["x"],
@@ -1132,9 +1179,9 @@ def cat_stats(sc):
             name="Average Cat"
         )
     ])
-    
-    
-    fig.update_layout( 
+
+
+    fig.update_layout(
     paper_bgcolor='rgba(0,0,0,0)',
     legend=dict(
     yanchor="top",
@@ -1146,15 +1193,15 @@ def cat_stats(sc):
     xaxis=dict(range=[1,max(res_x)+.2]))
     fig.update_xaxes(fixedrange=True)
     fig.update_yaxes(fixedrange=True)
-    
+
     quality_plot = plot(fig, output_type="div", include_plotlyjs="cdn")
 
     return quality_plot
-    
+
 def fix_timezone(request):
     if request.method != "POST":
         return redirect("/?error=Action Unavailable")
-        
+
     objects = []
     try:
         timezone = FixTimezone.objects.get(owner = request.user)
@@ -1172,15 +1219,11 @@ def fix_timezone(request):
                     continue
                 log.injection_time=tz.localize(injection_time)
                 log.save()
-                
+
         user_time = FixTimezone(
             owner = request.user,
             fixed = True,
             timezone = time_string)
         user_time.save()
-                
-        return redirect("/?message=success")
-            
-        
 
-    
+        return redirect("/?message=success")
